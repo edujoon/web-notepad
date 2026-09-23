@@ -1,0 +1,2062 @@
+<!doctype html>
+<!--
+  메모장
+  JOON <eduedujoon@gmail.com>
+  2026-09-22
+
+  MIT License
+
+  Copyright (c) 2026 JOON <eduedujoon@gmail.com>
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="author" content="JOON <eduedujoon@gmail.com>">
+<meta name="copyright" content="(c) 2026 JOON, MIT License">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>메모장</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=Nanum+Gothic+Coding:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+  --desk: #E4E7EC;
+  --paper: #FFFFFF;
+  --ink: #1B1E24;
+  --muted: #5F6570;
+  --faint: #8A909A;
+  --rule: #D2D6DD;
+  --hover: #EDEFF3;
+  --press: #E2E5EB;
+  --carbon: #3437A8;
+  --carbon-ink: #FFFFFF;
+  --carbon-soft: rgba(52, 55, 168, .13);
+  --carbon-strong: rgba(52, 55, 168, .34);
+  --danger: #B42318;
+  --shadow: 0 10px 28px rgba(20, 24, 40, .16), 0 1px 3px rgba(20, 24, 40, .10);
+  --sans: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  --mono: "Nanum Gothic Coding", "D2Coding", Consolas, "SF Mono", Menlo, monospace;
+  --fs: 16px;
+  --pad-x: 28px;
+  --pad-y: 22px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --desk: #121317; --paper: #1B1D22; --ink: #E3E5E9; --muted: #9EA3AD; --faint: #6E737C;
+    --rule: #2C2F36; --hover: #24262C; --press: #2C2F36;
+    --carbon: #9EA1FF; --carbon-ink: #121317;
+    --carbon-soft: rgba(158, 161, 255, .16); --carbon-strong: rgba(158, 161, 255, .40);
+    --danger: #F3A59C; --shadow: 0 10px 28px rgba(0, 0, 0, .5), 0 1px 3px rgba(0, 0, 0, .4);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --desk: #121317; --paper: #1B1D22; --ink: #E3E5E9; --muted: #9EA3AD; --faint: #6E737C;
+  --rule: #2C2F36; --hover: #24262C; --press: #2C2F36;
+  --carbon: #9EA1FF; --carbon-ink: #121317;
+  --carbon-soft: rgba(158, 161, 255, .16); --carbon-strong: rgba(158, 161, 255, .40);
+  --danger: #F3A59C; --shadow: 0 10px 28px rgba(0, 0, 0, .5), 0 1px 3px rgba(0, 0, 0, .4);
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); background: var(--desk); }
+body { height: 100%; margin: 0; background: var(--desk); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; overflow: hidden; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--carbon); outline-offset: 1px; }
+[hidden] { display: none !important; }
+svg { display: block; }
+
+#app { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+
+/* tabs */
+.top { display: flex; align-items: flex-end; gap: 2px; padding: 7px 8px 0; background: var(--desk); min-width: 0; }
+.tabs { position: relative; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { position: relative; display: flex; align-items: center; height: 34px; border-radius: 7px 7px 0 0; color: var(--muted); flex: 0 0 auto; }
+.tab:hover { background: rgba(127, 134, 150, .10); }
+.tab.active { background: var(--paper); color: var(--ink); box-shadow: inset 0 2px 0 var(--carbon); }
+.tab-main { display: flex; align-items: center; gap: 7px; height: 100%; padding: 0 4px 0 13px; max-width: 220px; border-radius: 7px 0 0 0; }
+.tab-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+.tab.active .tab-name { font-weight: 500; }
+.tab-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--carbon); flex: 0 0 auto; }
+.tab-x { width: 26px; height: 26px; margin-right: 4px; border-radius: 5px; display: grid; place-items: center; color: var(--faint); opacity: 0; }
+.tab:hover .tab-x, .tab.active .tab-x, .tab-x:focus-visible { opacity: 1; }
+.tab-x:hover { background: var(--hover); color: var(--ink); }
+.newtab { width: 30px; height: 30px; margin: 0 0 2px 4px; border-radius: 6px; display: grid; place-items: center; color: var(--muted); flex: 0 0 auto; }
+.newtab:hover { background: rgba(127, 134, 150, .14); color: var(--ink); }
+
+/* bar */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 8px; background: var(--paper); border-bottom: 1px solid var(--rule); flex-wrap: wrap; position: relative; z-index: 5; }
+.menus { display: flex; gap: 1px; }
+.menu { position: relative; }
+.menu-btn { padding: 5px 10px; border-radius: 5px; font-size: 14px; }
+.menu-btn:hover, .menu-btn[aria-expanded="true"] { background: var(--hover); }
+.menu-pop { position: absolute; top: calc(100% + 4px); left: 0; min-width: 270px; padding: 5px; background: var(--paper); border: 1px solid var(--rule); border-radius: 9px; box-shadow: var(--shadow); z-index: 20; }
+.mi { display: grid; grid-template-columns: 18px 1fr auto; align-items: center; gap: 8px; width: 100%; padding: 6px 10px 6px 8px; border-radius: 5px; text-align: left; font-size: 14px; }
+.mi:hover:not([aria-disabled="true"]), .mi:focus-visible { background: var(--hover); outline: none; }
+.mi[aria-disabled="true"] { color: var(--faint); cursor: default; }
+.mi .ck { visibility: hidden; color: var(--carbon); }
+.mi[aria-checked="true"] .ck { visibility: visible; }
+.mi kbd { font-family: var(--sans); font-size: 12.5px; color: var(--faint); }
+.sep { height: 1px; background: var(--rule); margin: 5px 6px; }
+
+.tools { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.seg { display: flex; padding: 3px; background: var(--desk); border-radius: 8px; gap: 2px; }
+.seg button { padding: 5px 12px; border-radius: 6px; font-size: 13.5px; color: var(--muted); white-space: nowrap; }
+.seg button:hover { color: var(--ink); }
+.seg button[aria-checked="true"] { background: var(--paper); color: var(--ink); font-weight: 500; box-shadow: 0 0 0 1px var(--rule); }
+.seg .s { display: none; }
+.copy { display: flex; align-items: center; gap: 7px; padding: 7px 14px 7px 12px; border-radius: 7px; background: var(--carbon); color: var(--carbon-ink); font-weight: 500; font-size: 13.5px; white-space: nowrap; }
+.copy:hover { filter: brightness(1.08); }
+.copy:active { filter: brightness(.95); }
+
+/* find */
+.findbar { display: flex; align-items: flex-start; gap: 4px; padding: 7px 10px 7px 6px; background: var(--paper); border-bottom: 1px solid var(--rule); }
+.find-rows { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.find-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.ftoggle { flex: 0 0 auto; width: 24px; height: 32px; display: grid; place-items: center; border-radius: 5px; color: var(--muted); }
+.ftoggle:hover { background: var(--hover); color: var(--ink); }
+.ftoggle .chev { transition: transform .15s ease; }
+.ftoggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.fq-wrap { position: relative; width: min(320px, 100%); }
+.find-row input[type="text"] { width: min(320px, 100%); height: 32px; padding: 0 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); font-size: 14px; }
+.find-row input[type="text"]:focus { border-color: var(--carbon); outline: none; box-shadow: 0 0 0 3px var(--carbon-soft); }
+.find-row .fq-wrap input[type="text"] { width: 100%; padding-right: 86px; }
+.fcount { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ibtn { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 6px; color: var(--muted); }
+.ibtn:hover { background: var(--hover); color: var(--ink); }
+.tbtn { height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--rule); font-size: 13.5px; }
+.tbtn:hover { background: var(--hover); }
+.tbtn[aria-pressed="true"] { border-color: var(--carbon); color: var(--carbon); }
+.chk { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); padding: 0 4px 0 6px; user-select: none; }
+.chk input { accent-color: var(--carbon); }
+.find-close { margin-left: auto; }
+
+.banner { padding: 8px 14px; font-size: 13px; background: var(--carbon-soft); color: var(--ink); border-bottom: 1px solid var(--rule); }
+
+/* stage */
+.stage { position: relative; flex: 1; min-height: 0; background: var(--paper); font-size: var(--fs); }
+.editor-wrap { position: absolute; inset: 0; }
+.backdrop, #ta {
+  position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; border: 0;
+  padding: var(--pad-y) var(--pad-x);
+  font-family: var(--sans); font-size: var(--fs); line-height: 1.75; letter-spacing: 0;
+  tab-size: 4; -moz-tab-size: 4;
+  white-space: pre-wrap; overflow-wrap: break-word; word-break: normal;
+  overflow: auto;
+}
+.stage.mono .backdrop, .stage.mono #ta { font-family: var(--mono); line-height: 1.65; }
+.nowrap .backdrop, .nowrap #ta { white-space: pre; overflow-wrap: normal; }
+.backdrop { color: transparent; pointer-events: none; z-index: 0; user-select: none; }
+.backdrop mark { color: transparent; background: var(--carbon-soft); border-radius: 2px; }
+.backdrop mark.cur { background: var(--carbon-strong); }
+#ta { z-index: 1; background: transparent; color: var(--ink); caret-color: var(--carbon); resize: none; outline: none; }
+#ta::placeholder { color: var(--faint); }
+#ta::selection { background: var(--carbon-strong); }
+#ta[readonly] { caret-color: transparent; }
+
+.rendered { position: absolute; inset: 0; overflow: auto; padding: var(--pad-y) var(--pad-x) 64px; }
+.md { max-width: 72ch; font-size: var(--fs); line-height: 1.8; overflow-wrap: break-word; word-break: keep-all; }
+.md.fallback { white-space: pre-wrap; word-break: normal; }
+.md > :first-child { margin-top: 0; }
+.md h1, .md h2, .md h3, .md h4, .md h5, .md h6 { line-height: 1.35; margin: 1.5em 0 .5em; font-weight: 600; letter-spacing: -.01em; }
+.md h1 { font-size: 1.65em; }
+.md h2 { font-size: 1.32em; padding-bottom: .25em; border-bottom: 1px solid var(--rule); }
+.md h3 { font-size: 1.14em; }
+.md h4, .md h5, .md h6 { font-size: 1em; }
+.md p { margin: .6em 0; }
+.md ul, .md ol { padding-left: 1.5em; margin: .5em 0; }
+.md li { margin: .2em 0; }
+.md li > input[type="checkbox"] { margin: 0 .45em 0 -.1em; accent-color: var(--carbon); vertical-align: -.1em; }
+.md ul:has(> li > input[type="checkbox"]) { list-style: none; padding-left: .4em; }
+.md a { color: var(--carbon); text-underline-offset: 3px; }
+.md strong { font-weight: 600; }
+.md code { font-family: var(--mono); font-size: .9em; background: var(--hover); padding: .1em .35em; border-radius: 4px; }
+.md pre { background: var(--hover); padding: 12px 16px; border-radius: 7px; overflow-x: auto; line-height: 1.6; word-break: normal; }
+.md pre code { background: none; padding: 0; font-size: .88em; }
+.md blockquote { margin: .8em 0; padding: .1em 0 .1em 16px; border-left: 3px solid var(--carbon); color: var(--muted); }
+.md hr { border: 0; border-top: 1px solid var(--rule); margin: 1.6em 0; }
+.md table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; margin: .8em 0; font-size: .95em; word-break: normal; }
+.md th, .md td { border: 1px solid var(--rule); padding: 6px 12px; text-align: left; vertical-align: top; }
+.md th { background: var(--hover); font-weight: 600; }
+.md img { max-width: 100%; }
+.md .empty { color: var(--faint); }
+
+/* status */
+.status { display: flex; align-items: center; height: 30px; padding: 0 4px; background: var(--desk); color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--rule); white-space: nowrap; overflow: hidden; font-variant-numeric: tabular-nums; }
+.status > span { padding: 0 12px; }
+.status > span + span { border-left: 1px solid var(--rule); }
+.sync { margin-left: auto; display: flex; align-items: center; gap: 7px; border-left: 0 !important; }
+.sheets { width: 16px; height: 16px; overflow: visible; }
+.sheets .back { fill: var(--carbon); transition: transform .5s cubic-bezier(.2, .8, .2, 1); }
+.sheets .front { fill: var(--desk); stroke: var(--carbon); stroke-width: 1.4; }
+.sync[data-state="wait"] .back, .sync[data-state="saving"] .back { opacity: .35; }
+.sync[data-state="local"] .back { opacity: 0; }
+.sync[data-state="error"] .back { fill: var(--danger); }
+.sync[data-state="error"] .front { stroke: var(--danger); }
+.sync[data-state="error"] .label { color: var(--danger); }
+.sync.got .back { transform: translate(-2px, 2px); }
+
+/* toast + dialog */
+.toast-dock { position: fixed; left: 0; right: 0; bottom: 0; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 46px); display: flex; justify-content: center; pointer-events: none; z-index: 40; }
+.toast { max-width: calc(100% - 32px); padding: 9px 16px; border-radius: 8px; background: var(--ink); color: var(--paper); font-size: 13.5px; box-shadow: var(--shadow); opacity: 0; transform: translateY(6px); transition: opacity .18s, transform .18s; }
+.toast.show { opacity: 1; transform: none; }
+.dlg-layer { position: fixed; inset: 0; background: rgba(12, 14, 20, .38); display: grid; place-items: center; padding: 16px; z-index: 50; }
+.dlg { width: min(420px, 100%); background: var(--paper); border-radius: 12px; box-shadow: var(--shadow); padding: 20px 20px 16px; }
+.dlg h2 { margin: 0 0 6px; font-size: 17px; font-weight: 600; }
+.dlg p { margin: 0 0 14px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.dlg input { width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 7px; background: var(--paper); font-size: 15px; margin-bottom: 16px; }
+.dlg input:focus { outline: none; border-color: var(--carbon); box-shadow: 0 0 0 3px var(--carbon-soft); }
+.dlg-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.btn { height: 36px; padding: 0 16px; border-radius: 7px; font-size: 14px; font-weight: 500; }
+.btn.ghost:hover { background: var(--hover); }
+.btn.primary { background: var(--carbon); color: var(--carbon-ink); }
+.btn.danger { background: var(--danger); color: var(--paper); }
+
+.about { width: min(360px, 100%); padding-top: 22px; }
+.about-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.about-head h2 { margin: 0; }
+.about-mark { width: 26px; height: 26px; overflow: visible; }
+.about-mark .back { fill: var(--carbon); }
+.about-mark .front { fill: var(--paper); stroke: var(--carbon); stroke-width: 1.3; }
+.about-who { display: flex; flex-direction: column; gap: 2px; padding: 12px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); font-size: 14.5px; user-select: text; }
+.about-who .n { font-weight: 600; font-size: 15.5px; }
+.about-who .m, .about-who .d { color: var(--muted); }
+.about-lic { margin: 12px 0 18px !important; font-size: 13.5px !important; }
+.about-lic span { color: var(--faint); margin-left: 4px; }
+
+@media (max-width: 720px) {
+  :root { --pad-x: 16px; --pad-y: 14px; }
+  .tools { width: 100%; justify-content: space-between; }
+  .bar { gap: 6px; }
+  .st-zoom, .st-count { display: none; }
+}
+@media (max-width: 560px) {
+  .seg .l { display: none; }
+  .seg .s { display: inline; }
+  .seg button { padding: 5px 11px; }
+  .menu-btn { padding: 5px 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast, .sheets .back, .ftoggle .chev { transition: none; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="tabs" id="tabs" role="tablist" aria-label="메모 목록"></div>
+    <button class="newtab" id="newTab" title="새 메모 (Alt+N)" aria-label="새 메모">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
+    </button>
+  </header>
+
+  <div class="bar">
+    <nav class="menus" id="menus" aria-label="메뉴">
+      <div class="menu">
+        <button class="menu-btn" aria-haspopup="menu" aria-expanded="false">파일</button>
+        <div class="menu-pop" role="menu" hidden>
+          <button class="mi" role="menuitem" data-cmd="newNote"><span></span><span>새 메모</span><kbd data-alt="N"></kbd></button>
+          <button class="mi" role="menuitem" data-cmd="openFile"><span></span><span>파일 열기…</span><kbd></kbd></button>
+          <div class="sep" role="separator"></div>
+          <button class="mi" role="menuitem" data-cmd="saveTxt" data-need="downloads"><span></span><span>서식 제거 텍스트로 저장 (.txt)</span><kbd></kbd></button>
+          <button class="mi" role="menuitem" data-cmd="saveMd" data-need="downloads"><span></span><span>마크다운 원본으로 저장 (.md)</span><kbd></kbd></button>
+
+          <div class="sep" role="separator"></div>
+          <button class="mi" role="menuitem" data-cmd="rename" data-need="write"><span></span><span>이름 바꾸기…</span><kbd></kbd></button>
+          <button class="mi" role="menuitem" data-cmd="del" data-need="write"><span></span><span>메모 삭제…</span><kbd></kbd></button>
+        </div>
+      </div>
+      <div class="menu">
+        <button class="menu-btn" aria-haspopup="menu" aria-expanded="false">편집</button>
+        <div class="menu-pop" role="menu" hidden>
+          <button class="mi" role="menuitem" data-cmd="undo" data-need="write"><span></span><span>실행 취소</span><kbd data-mod="Z"></kbd></button>
+          <button class="mi" role="menuitem" data-cmd="redo" data-need="write"><span></span><span>다시 실행</span><kbd data-mod="Y"></kbd></button>
+          <div class="sep" role="separator"></div>
+          <button class="mi" role="menuitem" data-cmd="cut" data-need="edit"><span></span><span>잘라내기</span><kbd data-mod="X"></kbd></button>
+          <button class="mi" role="menuitem" data-cmd="copy"><span></span><span>복사</span><kbd data-mod="C"></kbd></button>
+          <button class="mi" role="menuitem" data-cmd="paste" data-need="edit"><span></span><span>붙여넣기</span><kbd data-mod="V"></kbd></button>
+          <button class="mi" role="menuitem" data-cmd="deleteSel" data-need="edit"><span></span><span>삭제</span><kbd>Del</kbd></button>
+          <div class="sep" role="separator"></div>
+          <button class="mi" role="menuitem" data-cmd="find"><span></span><span>찾기</span><kbd data-mod="F"></kbd></button>
+          <button class="mi" role="menuitem" data-cmd="findNext"><span></span><span>다음 찾기</span><kbd>F3</kbd></button>
+          <button class="mi" role="menuitem" data-cmd="findPrev"><span></span><span>이전 찾기</span><kbd>Shift+F3</kbd></button>
+          <button class="mi" role="menuitem" data-cmd="replace" data-need="write"><span></span><span>바꾸기</span><kbd data-mod="H"></kbd></button>
+          <button class="mi" role="menuitem" data-cmd="goto"><span></span><span>줄 이동</span><kbd data-mod="G"></kbd></button>
+          <div class="sep" role="separator"></div>
+          <button class="mi" role="menuitem" data-cmd="selectAll"><span></span><span>모두 선택</span><kbd data-mod="A"></kbd></button>
+        </div>
+      </div>
+      <div class="menu">
+        <button class="menu-btn" aria-haspopup="menu" aria-expanded="false">서식</button>
+        <div class="menu-pop" role="menu" hidden>
+          <button class="mi" role="menuitemcheckbox" data-cmd="wrap" data-check="wrap"><span class="ck">✓</span><span>자동 줄 바꿈</span><kbd></kbd></button>
+          <div class="sep" role="separator"></div>
+          <button class="mi" role="menuitemradio" data-cmd="fontSans" data-check="fontSans"><span class="ck">✓</span><span>기본 글꼴</span><kbd></kbd></button>
+          <button class="mi" role="menuitemradio" data-cmd="fontMono" data-check="fontMono"><span class="ck">✓</span><span>고정폭 글꼴</span><kbd></kbd></button>
+        </div>
+      </div>
+      <div class="menu">
+        <button class="menu-btn" aria-haspopup="menu" aria-expanded="false">보기</button>
+        <div class="menu-pop" role="menu" hidden>
+          <button class="mi" role="menuitemradio" data-cmd="modePlain" data-check="modePlain"><span class="ck">✓</span><span>서식 제거 텍스트</span><kbd data-alt="1"></kbd></button>
+          <button class="mi" role="menuitemradio" data-cmd="modeRaw" data-check="modeRaw"><span class="ck">✓</span><span>마크다운 원본</span><kbd data-alt="2"></kbd></button>
+          <button class="mi" role="menuitemradio" data-cmd="modeRendered" data-check="modeRendered"><span class="ck">✓</span><span>서식 적용 화면</span><kbd data-alt="3"></kbd></button>
+          <div class="sep" role="separator"></div>
+          <button class="mi" role="menuitem" data-cmd="zoomIn"><span></span><span>확대</span><kbd data-mod="+"></kbd></button>
+          <button class="mi" role="menuitem" data-cmd="zoomOut"><span></span><span>축소</span><kbd data-mod="−"></kbd></button>
+          <button class="mi" role="menuitem" data-cmd="zoomReset"><span></span><span>기본 크기로</span><kbd data-mod="0"></kbd></button>
+          <div class="sep" role="separator"></div>
+          <button class="mi" role="menuitemcheckbox" data-cmd="statusbar" data-check="statusbar"><span class="ck">✓</span><span>상태 표시줄</span><kbd></kbd></button>
+        </div>
+      </div>
+      <div class="menu">
+        <button class="menu-btn" aria-haspopup="menu" aria-expanded="false">도움말</button>
+        <div class="menu-pop" role="menu" hidden>
+          <button class="mi" role="menuitem" data-cmd="about"><span></span><span>메모장 정보</span><kbd></kbd></button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="tools">
+      <div class="seg" id="seg" role="radiogroup" aria-label="보기 방식">
+        <button type="button" role="radio" data-mode="plain" aria-checked="true" aria-label="서식 제거 텍스트" title="마크다운 기호(**, # 등)를 숨기고 글자만 보여요. 바로 편집할 수 있어요 (Alt+1)"><span class="l">서식 제거 텍스트</span><span class="s">텍스트</span></button>
+        <button type="button" role="radio" data-mode="raw" aria-checked="false" tabindex="-1" aria-label="마크다운 원본" title="마크다운 기호까지 붙여넣은 그대로 보여요. 기호까지 편집할 수 있어요 (Alt+2)"><span class="l">마크다운 원본</span><span class="s">마크다운</span></button>
+        <button type="button" role="radio" data-mode="rendered" aria-checked="false" tabindex="-1" aria-label="서식 적용 화면" title="제목, 굵게, 목록, 표 같은 서식을 적용해서 보여요. 읽기 전용이에요 (Alt+3)"><span class="l">서식 적용 화면</span><span class="s">미리보기</span></button>
+      </div>
+      <button class="copy" id="copyAll" title="지금 보이는 방식 그대로 전체를 복사해요">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5.5" y="5.5" width="8" height="8.5" rx="1.5"/><path d="M10.5 5.5V3.5A1.5 1.5 0 0 0 9 2H4A1.5 1.5 0 0 0 2.5 3.5v6A1.5 1.5 0 0 0 4 11h1.5"/></svg>
+        전체 복사
+      </button>
+    </div>
+  </div>
+
+  <div class="findbar" id="findbar" hidden>
+    <button class="ftoggle" id="ftoggle" aria-expanded="false" aria-controls="replrow" aria-label="바꾸기 펼치기" title="바꾸기 펼치기">
+      <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"/></svg>
+    </button>
+    <div class="find-rows">
+    <div class="find-row">
+      <div class="fq-wrap">
+        <input type="text" id="fq" placeholder="찾을 내용" aria-label="찾을 내용" autocomplete="off" spellcheck="false">
+        <span class="fcount" id="fcount" aria-live="polite"></span>
+      </div>
+      <button class="ibtn" id="fprev" title="이전 찾기 (Shift+Enter)" aria-label="이전 찾기"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3M4 7l4-4 4 4"/></svg></button>
+      <button class="ibtn" id="fnext" title="다음 찾기 (Enter)" aria-label="다음 찾기"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M4 9l4 4 4-4"/></svg></button>
+      <label class="chk"><input type="checkbox" id="fcase"> 대/소문자 구분</label>
+      <button class="ibtn find-close" id="fclose" title="닫기 (Esc)" aria-label="찾기 닫기"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+    </div>
+    <div class="find-row" id="replrow" hidden>
+      <input type="text" id="fr" placeholder="바꿀 내용" aria-label="바꿀 내용" autocomplete="off" spellcheck="false">
+      <button class="tbtn" id="frep">바꾸기</button>
+      <button class="tbtn" id="frepall">모두 바꾸기</button>
+    </div>
+    </div>
+  </div>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <main class="stage" id="stage">
+    <div class="editor-wrap" id="editorWrap">
+      <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+      <textarea id="ta" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="메모 내용" readonly placeholder="메모를 불러오는 중…"></textarea>
+    </div>
+    <article class="rendered" id="rendered" hidden tabindex="0" aria-label="서식을 적용한 메모"><div class="md" id="md"></div></article>
+  </main>
+
+  <footer class="status" id="status">
+    <span id="stPos">줄 1, 열 1</span>
+    <span class="st-count" id="stCount">0자</span>
+    <span class="st-zoom" id="stZoom">100%</span>
+    <span class="sync" id="stSync" data-state="wait">
+      <svg class="sheets" viewBox="0 0 16 16" aria-hidden="true"><rect class="back" x="5" y="1.5" width="9.5" height="11.5" rx="1.6"/><rect class="front" x="1.5" y="3.5" width="9.5" height="11.5" rx="1.6"/></svg>
+      <span class="label" id="stSyncLabel">불러오는 중</span>
+    </span>
+  </footer>
+</div>
+
+<div class="toast-dock"><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+
+<div class="dlg-layer" id="aboutLayer" hidden>
+  <div class="dlg about" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+    <div class="about-head">
+      <svg class="about-mark" viewBox="0 0 16 16" aria-hidden="true"><rect class="back" x="5" y="1.5" width="9.5" height="11.5" rx="1.6"/><rect class="front" x="1.5" y="3.5" width="9.5" height="11.5" rx="1.6"/></svg>
+      <h2 id="aboutTitle">메모장</h2>
+    </div>
+    <div class="about-who" id="aboutWho"></div>
+    <p class="about-lic">자유롭게 복사하고 고쳐 쓸 수 있어요. <span>MIT License</span></p>
+    <div class="dlg-actions"><button class="btn primary" id="aboutOk">닫기</button></div>
+  </div>
+</div>
+
+<div class="dlg-layer" id="dlgLayer" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <h2 id="dlgTitle"></h2>
+    <p id="dlgMsg"></p>
+    <input id="dlgInput" type="text" autocomplete="off">
+    <div class="dlg-actions">
+      <button class="btn ghost" id="dlgCancel">취소</button>
+      <button class="btn primary" id="dlgOk">확인</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".txt,.md,.markdown,text/plain,text/markdown" hidden>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+<script>
+(() => {
+'use strict';
+
+const HAS_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
+
+/* ============================================================
+   Markdown stripper that keeps a map back to the source,
+   so the "서식 제거 텍스트" view can be edited directly.
+   ============================================================ */
+function stripMd(raw) {
+  const out = [], A = [], B = [], groups = [], lps = [];
+  const n = raw.length;
+  const emit = (ch, s, e) => { out.push(ch); A.push(s); B.push(e); };
+  const emitRaw = (s, e) => { for (let i = s; i < e; i++) { out.push(raw[i]); A.push(i); B.push(i + 1); } };
+  const PUNCT = /[!-\/:-@\[-`{-~]/;
+  const WORD = /[\p{L}\p{N}]/u;
+  const WS = /\s/;
+  const TAG = /^<\/?(br|hr|b|strong|i|em|u|s|strike|del|ins|mark|sup|sub|span|small|big|kbd|code|a|font|center|p|div|img|abbr|cite|q|samp|var|tt)(?:\s[^<>]*)?\/?>/i;
+  const DEF = /^ {0,3}\[((?:[^\]\\]|\\.)+)\]:[ \t]*(?:<[^>\n]*>|[^\s<>]\S*)(?:[ \t]+(?:"[^"]*"|'[^']*'|\([^)]*\)))?[ \t]*$/;
+  const FENCE = /^ {0,3}(`{3,}|~{3,})(.*)$/;
+  const norm = (l) => l.trim().replace(/\s+/g, ' ').toLowerCase();
+  const defs = new Set(), defLines = new Set();
+  let inCell = false;
+
+  function codeEnd(i, e) {
+    let k = i; while (k < e && raw[k] === '`') k++;
+    const len = k - i; let j = k;
+    while (j < e) {
+      if (raw[j] === '`') { let t = j; while (t < e && raw[t] === '`') t++; if (t - j === len) return { open: k, close: j, end: t }; j = t; }
+      else j++;
+    }
+    return null;
+  }
+  function bracketEnd(i, e) {
+    let depth = 0;
+    for (let j = i; j < e; j++) {
+      const c = raw[j];
+      if (c === '\\') { j++; continue; }
+      if (c === '`') { const r = codeEnd(j, e); if (r) { j = r.end - 1; continue; } }
+      if (c === '[') depth++;
+      else if (c === ']') { depth--; if (depth === 0) return j; }
+    }
+    return -1;
+  }
+  function parseLink(i, e) {
+    const j = bracketEnd(i, e);
+    if (j < 0 || j === i + 1) return null;
+    if (raw[j + 1] === '(') {
+      let k = j + 2, pd = 1;
+      for (; k < e; k++) {
+        const c = raw[k];
+        if (c === '\\') { k++; continue; }
+        if (c === '(') pd++;
+        else if (c === ')') { pd--; if (pd === 0) break; }
+      }
+      return k < e ? { textEnd: j, end: k + 1 } : null;
+    }
+    if (!defs.size) return null;
+    if (raw[j + 1] === '[') {
+      const k = raw.indexOf(']', j + 2);
+      if (k !== -1 && k < e) {
+        const label = raw.slice(j + 2, k) || raw.slice(i + 1, j);
+        if (defs.has(norm(label))) return { textEnd: j, end: k + 1 };
+      }
+    }
+    if (defs.has(norm(raw.slice(i + 1, j)))) return { textEnd: j, end: j + 1 };
+    return null;
+  }
+  function tryEmph(i, s, e) {
+    const c = raw[i];
+    let k = i; while (k < e && raw[k] === c) k++;
+    const L = k - i;
+    if (L > 3 || (c === '~' && L !== 2)) return null;
+    if (k >= e || WS.test(raw[k])) return null;
+    if (c === '_' && i > s && WORD.test(raw[i - 1])) return null;
+    let j = k;
+    while (j < e) {
+      const ch = raw[j];
+      if (ch === '\\') { j += 2; continue; }
+      if (ch === '`') { const r = codeEnd(j, e); if (r) { j = r.end; continue; } }
+      if (ch === c) {
+        let t = j; while (t < e && raw[t] === c) t++;
+        if (t - j === L && j > k && !WS.test(raw[j - 1])) {
+          if (!(c === '_' && t < e && WORD.test(raw[t]))) return { cs: k, ce: j, end: t, L };
+        }
+        j = t; continue;
+      }
+      j++;
+    }
+    return null;
+  }
+  const TAGS = { 1: ['<em>', '</em>'], 2: ['<strong>', '</strong>'], 3: ['<strong><em>', '</em></strong>'] };
+  function inline(s, e) {
+    if (e - s > 20000) { emitRaw(s, e); return; }
+    let i = s;
+    while (i < e) {
+      const c = raw[i];
+      if (c === '\\' && i + 1 < e && PUNCT.test(raw[i + 1])) { emit(raw[i + 1], i, i + 2); i += 2; continue; }
+      if (c === '`') {
+        const r = codeEnd(i, e);
+        if (r) { const cs = out.length; emitRaw(r.open, r.close); groups.push({ kind: 'code', gs: i, ge: r.end, cs, ce: out.length, rcs: r.open, rce: r.close, split: true }); i = r.end; continue; }
+        let k = i; while (k < e && raw[k] === '`') k++; emitRaw(i, k); i = k; continue;
+      }
+      if ((c === '!' && raw[i + 1] === '[') || c === '[') {
+        const o = c === '!' ? i + 1 : i;
+        const r = parseLink(o, e);
+        if (r) { const cs = out.length; inline(o + 1, r.textEnd); groups.push({ kind: 'link', gs: i, ge: r.end, cs, ce: out.length, rcs: o + 1, rce: r.textEnd, split: true }); i = r.end; continue; }
+      }
+      if (c === '<') {
+        const seg = raw.slice(i, Math.min(e, i + 2048));
+        const m = /^<((?:https?|mailto|ftp):[^\s<>]+|[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+)>/i.exec(seg);
+        if (m) { const cs = out.length; emitRaw(i + 1, i + 1 + m[1].length); groups.push({ kind: 'link', gs: i, ge: i + m[0].length, cs, ce: out.length, rcs: i + 1, rce: i + 1 + m[1].length, split: false }); i += m[0].length; continue; }
+        const t = TAG.exec(seg);
+        if (t) { if (t[1].toLowerCase() === 'br') emit(inCell ? ' ' : '\n', i, i + t[0].length); i += t[0].length; continue; }
+      }
+      if (c === '*' || c === '_' || c === '~') {
+        const r = tryEmph(i, s, e);
+        if (r) {
+          const cs = out.length; inline(r.cs, r.ce);
+          groups.push({ kind: 'emph', gs: i, ge: r.end, cs, ce: out.length, rcs: r.cs, rce: r.ce, split: true, tag: c === '~' ? ['<del>', '</del>'] : TAGS[r.L] });
+          i = r.end; continue;
+        }
+        let k = i; while (k < e && raw[k] === c) k++; emitRaw(i, k); i = k; continue;
+      }
+      out.push(c); A.push(i); B.push(i + 1); i++;
+    }
+  }
+  const isSep = (t) => t.includes('|') && t.includes('-') && /^[ \t]*\|?[ \t]*:?-+:?[ \t]*(\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$/.test(t);
+  function tableRow(s, e) {
+    const pipes = []; let inCode = false;
+    for (let i = s; i < e; i++) {
+      const c = raw[i];
+      if (c === '\\') { i++; continue; }
+      if (c === '`') { inCode = !inCode; continue; }
+      if (c === '|' && !inCode) pipes.push(i);
+    }
+    let i0 = s; while (i0 < e && (raw[i0] === ' ' || raw[i0] === '\t')) i0++;
+    let te = e; while (te > s && (raw[te - 1] === ' ' || raw[te - 1] === '\t')) te--;
+    let cs0 = s, ce0 = e;
+    if (pipes.length && pipes[0] === i0) cs0 = pipes.shift() + 1;
+    if (pipes.length && pipes[pipes.length - 1] === te - 1) ce0 = pipes.pop();
+    const cells = [];
+    let a0 = cs0;
+    for (let k = 0; k <= pipes.length; k++) {
+      const b0 = k < pipes.length ? pipes[k] : ce0;
+      let a = a0, b = b0;
+      while (a < b && (raw[a] === ' ' || raw[a] === '\t')) a++;
+      while (b > a && (raw[b - 1] === ' ' || raw[b - 1] === '\t')) b--;
+      cells.push([a, b]);
+      a0 = b0 + 1;
+    }
+    inCell = true;
+    for (let k = 0; k < cells.length; k++) {
+      inline(cells[k][0], cells[k][1]);
+      if (k < cells.length - 1) emit('\t', cells[k][1], cells[k + 1][0]);
+    }
+    inCell = false;
+  }
+
+  const lines = [];
+  { let ls = 0; for (;;) { let nl = raw.indexOf('\n', ls); if (nl === -1) nl = n; lines.push([ls, nl]); if (nl === n) break; ls = nl + 1; } }
+  // reference definitions: "[label]: url" lines (not inside fences, not continuing a paragraph)
+  if (raw.includes(']:')) {
+    let f = null, open = true;
+    for (let li = 0; li < lines.length; li++) {
+      const L = raw.slice(lines[li][0], lines[li][1]);
+      if (f) { const m = /^ {0,3}(`{3,}|~{3,})[ \t]*$/.exec(L); if (m && m[1][0] === f.ch && m[1].length >= f.len) f = null; open = true; continue; }
+      const mf = FENCE.exec(L);
+      if (mf && !(mf[1][0] === '`' && mf[2].includes('`'))) { f = { ch: mf[1][0], len: mf[1].length }; open = false; continue; }
+      const md = DEF.exec(L);
+      if (md && open) { defs.add(norm(md[1])); defLines.add(li); continue; }
+      open = L.trim() === '' || /^ {0,3}#{1,6}(?:[ \t]|$)/.test(L);
+    }
+  }
+  let fence = null, table = false, prevBlank = true, prevOdd = false;
+  for (let li = 0; li < lines.length; li++) {
+    const [s, e] = lines[li];
+    const hasNL = e < n;
+    const L = raw.slice(s, e);
+    const hide = () => {
+      if (!hasNL) { const k = out.length - 1; if (k >= 0 && out[k] === '\n' && A[k] === s - 1) { out.pop(); A.pop(); B.pop(); } }
+    };
+    const nl = () => { if (hasNL) { out.push('\n'); A.push(e); B.push(e + 1); } };
+    const blank = L.trim() === '';
+    if (fence) {
+      const m = /^ {0,3}(`{3,}|~{3,})[ \t]*$/.exec(L);
+      if (m && m[1][0] === fence.ch && m[1].length >= fence.len) { fence = null; hide(); prevBlank = false; continue; }
+      emitRaw(s, e); nl(); continue;
+    }
+    const mf = FENCE.exec(L);
+    if (mf && !(mf[1][0] === '`' && mf[2].includes('`'))) { fence = { ch: mf[1][0], len: mf[1].length }; hide(); prevBlank = false; table = false; continue; }
+    if (defLines.has(li)) { hide(); prevBlank = true; continue; }
+    if (!table && L.includes('|') && li + 1 < lines.length && isSep(raw.slice(lines[li + 1][0], lines[li + 1][1]))) table = true;
+    if (table) {
+      if (blank || !L.includes('|')) table = false;
+      else if (isSep(L)) { hide(); continue; }
+      else { tableRow(s, e); nl(); prevBlank = false; prevOdd = true; continue; }
+    }
+    if (/^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$/.test(L) || (!prevBlank && !prevOdd && /^ {0,3}=+[ \t]*$/.test(L))) { hide(); prevBlank = false; continue; }
+    prevOdd = /^ {0,3}>/.test(L);
+    // a backslash at the end of a line is a hard line break, not text
+    let le = e;
+    if (hasNL && raw[e - 1] === '\\') { let k = e - 1; while (k > s && raw[k - 1] === '\\') k--; if ((e - k) % 2 === 1) le = e - 1; }
+    let i = s, mq;
+    while ((mq = /^ {0,3}> ?/.exec(raw.slice(i, e)))) i += mq[0].length;
+    let hiddenEnd = i;
+    const rest = raw.slice(i, e);
+    const mh = /^ {0,3}(#{1,6})(?:[ \t]+|$)/.exec(rest);
+    if (mh) {
+      i += mh[0].length; hiddenEnd = i;
+      let ce = e;
+      const mc = /(^|[ \t]+)#+[ \t]*$/.exec(raw.slice(i, e));
+      if (mc) ce = i + mc.index;
+      const cs = out.length;
+      inline(i, ce);
+      lps.push({ ls: s, pe: hiddenEnd, cs, ce: out.length, le: e });
+      nl(); prevBlank = blank; continue;
+    }
+    const cs = out.length;
+    const ml = /^([ \t]*)([-*+])([ \t]+)/.exec(rest);
+    if (ml) {
+      const mk = i + ml[1].length;
+      emitRaw(i, mk);
+      const after = mk + 1 + ml[3].length;
+      const mt = /^\[([ xX])\](?=[ \t]|$)/.exec(raw.slice(after, e));
+      if (mt) { emit(mt[1] === ' ' ? '☐' : '☑', mk, after + 3); inline(after + 3, le); }
+      else { emit('•', mk, mk + 1); emitRaw(mk + 1, after); inline(after, le); }
+    } else {
+      inline(i, le);
+    }
+    if (hiddenEnd > s) lps.push({ ls: s, pe: hiddenEnd, cs, ce: out.length, le: e });
+    nl(); prevBlank = blank;
+  }
+  return { out: out.join(''), A, B, groups, lps };
+}
+
+/* Source for the "서식 적용 화면" view: emphasis the stripper found is turned into
+   HTML tags, so Korean text like **'강조'**를 renders bold instead of showing ** */
+function renderSource(raw) {
+  if (!/[*_~]/.test(raw)) return raw;
+  const v = stripMd(raw);
+  const edits = [];
+  for (const g of v.groups) if (g.tag) { edits.push([g.gs, g.rcs, g.tag[0]], [g.rce, g.ge, g.tag[1]]); }
+  if (!edits.length) return raw;
+  edits.sort((a, b) => a[0] - b[0]);
+  const parts = []; let last = 0;
+  for (const [a, b, t] of edits) { parts.push(raw.slice(last, a), t); last = b; }
+  parts.push(raw.slice(last));
+  return parts.join('');
+}
+
+/* Line breaks typed inside **bold**, `code` or [link text] close the markup before the
+   break and reopen it after, so every line keeps its formatting. */
+function wrapBreaks(raw, groups, ins) {
+  if (!groups.length || !ins.includes('\n')) return ins;
+  groups = groups.slice().sort((a, b) => a.gs - b.gs);
+  const opens = groups.map(g => raw.slice(g.gs, g.rcs)).join('');
+  const closes = groups.map(g => raw.slice(g.rce, g.ge)).reverse().join('');
+  // markup must hug the text: ** goes before trailing spaces and after leading spaces
+  const head = (x) => /^[ \t]*/.exec(x)[0], tail = (x) => /[ \t]*$/.exec(x)[0];
+  const segs = ins.split('\n');
+  const t0 = tail(segs[0]);
+  let r = segs[0].slice(0, segs[0].length - t0.length) + closes + t0;
+  for (let k = 1; k < segs.length; k++) {
+    const seg = segs[k], h = head(seg);
+    r += '\n';
+    if (k === segs.length - 1) { r += h + opens + seg.slice(h.length); continue; }
+    const body = seg.slice(h.length), t = tail(body), core = body.slice(0, body.length - t.length);
+    r += core ? h + opens + core + closes + t : seg;
+  }
+  return r;
+}
+/* Map an edit in the stripped text [d0, d1) -> ins onto the source.
+   Returns [rawStart, rawEnd, rawInsert, caretOffsetInInsert]. */
+function mapEdit(raw, v, d0, d1, ins, alt = 0) {
+  const S = v.out;
+  if (d1 > d0 && d0 === 0 && d1 === S.length) return [0, raw.length, ins, ins.length];
+  if (d1 > d0 && alt === 10) {
+    // spaces typed at the edge of **bold** go outside it ("** 굵게**" would not be bold)
+    let a = v.A[d0], b = v.B[d1 - 1], body = ins, pre = '', post = '';
+    const lead = /^[ \t]*/.exec(ins)[0], trail = /[ \t]*$/.exec(ins)[0];
+    const gs = v.groups.find(g => g.kind === 'emph' && g.rcs === a), ge = v.groups.find(g => g.kind === 'emph' && g.rce === b);
+    if (ge && trail) { body = body.slice(0, body.length - trail.length); post = raw.slice(ge.rce, ge.ge) + trail; b = ge.ge; }
+    if (gs && lead && body.length >= lead.length) { body = body.slice(lead.length); pre = lead + raw.slice(gs.gs, gs.rcs); a = gs.gs; }
+    const insRaw = pre + body + post;
+    return [a, b, insRaw, insRaw.length];
+  }
+  if (d1 > d0) {
+    let rs = v.A[d0], re = v.B[d1 - 1];
+    if (alt === 9) {
+      // also take the hidden markup on both sides (a hard-break backslash, closing ##, …)
+      rs = d0 > 0 ? v.B[d0 - 1] : 0; re = d1 < S.length ? v.A[d1] : raw.length;
+    } else {
+      // deleting everything inside **bold**, `code`, a heading… removes its markup too;
+      // typing over it keeps the markup (like a word processor keeps the style)
+      const wipe = ins === '' || alt === 1;
+      if (wipe) for (const g of v.groups) if (g.ce > g.cs && d0 <= g.cs && g.ce <= d1) { if (g.gs < rs) rs = g.gs; if (g.ge > re) re = g.ge; }
+      for (const lp of v.lps) {
+        if (wipe && lp.ce > lp.cs && d0 <= lp.cs && lp.ce <= d1) { if (lp.ls < rs) rs = lp.ls; if (lp.le > re) re = lp.le; }
+        if (S[d1 - 1] === '\n' && lp.cs === d1 && lp.pe > re) re = lp.pe;
+      }
+    }
+    // a deletion that swallows only one half of a pair (the closing ** or the opening [)
+    // puts that half back, so the rest of the text keeps its formatting
+    const closers = [], openers = [];
+    for (const g of v.groups) {
+      const openIn = rs <= g.gs && g.rcs <= re, closeIn = rs <= g.rce && g.ge <= re;
+      if (closeIn && !openIn) closers.push(g);
+      else if (openIn && !closeIn) openers.push(g);
+    }
+    closers.sort((a, b) => a.rce - b.rce);
+    openers.sort((a, b) => a.gs - b.gs);
+    const cl = closers.map(g => raw.slice(g.rce, g.ge)).join(''), op = openers.map(g => raw.slice(g.gs, g.rcs)).join('');
+    ins = wrapBreaks(raw, v.groups.filter(g => g.split && g.rcs < rs && re < g.rce), ins);
+    if (alt === 2) return [rs, re, cl + ins + op, cl.length + ins.length];
+    if (alt === 5) {
+      // keep spaces outside the markup: "**굵은 **" is not bold, "**굵은** " is
+      let a = rs, b = re, pre = '', post = '';
+      if (closers.length) { let k = rs; while (k > 0 && (raw[k - 1] === ' ' || raw[k - 1] === '\t')) k--; if (k < rs && closers.every(g => k > g.rcs)) { pre = raw.slice(k, rs); a = k; } }
+      if (openers.length) { let k = re; while (k < raw.length && (raw[k] === ' ' || raw[k] === '\t')) k++; if (k > re && openers.every(g => k < g.rce)) { post = raw.slice(re, k); b = k; } }
+      return [a, b, cl + pre + ins + post + op, cl.length + pre.length + ins.length];
+    }
+    if (alt === 3) return [rs, re, cl + op + ins, cl.length + op.length + ins.length];
+    return [rs, re, ins + cl + op, ins.length];
+  }
+  const p = d0;
+  let rs;
+  if (S.length === 0) rs = raw.length;
+  else if (p === 0 || S[p - 1] === '\n') {
+    const lineStart = p === 0 ? 0 : v.B[p - 1];
+    const content = p < S.length ? v.A[p] : raw.length;
+    rs = ins.endsWith('\n') ? lineStart : content;
+  } else rs = v.B[p - 1];
+  // text typed right after a link or `code` goes after it, not inside it
+  for (let moved = true; moved;) {
+    moved = false;
+    for (const g of v.groups) if (g.kind !== 'emph' && g.rce === rs && g.ge > rs) { rs = g.ge; moved = true; }
+  }
+  const inside = v.groups.filter(g => g.split && g.rcs < rs && rs < g.rce);
+  if (inside.length && ins.includes('\n')) {
+    const lo = Math.max(...inside.map(g => g.rcs)), hi = Math.min(...inside.map(g => g.rce));
+    let a = rs, b = rs;
+    while (a > lo + 1 && (raw[a - 1] === ' ' || raw[a - 1] === '\t')) a--;
+    while (b < hi - 1 && (raw[b] === ' ' || raw[b] === '\t')) b++;
+    const w = wrapBreaks(raw, inside, raw.slice(a, rs) + ins + raw.slice(rs, b));
+    return [a, b, w, w.length];
+  }
+  return [rs, rs, ins, ins.length];
+}
+/* Apply a stripped-view edit to the source so the result looks exactly like what was typed.
+   Several placements are tried (inside or outside hidden markup); the first one whose
+   stripped text matches wins. Returns {raw, view, viewCaret}. */
+function resolveEdit(raw, v, d0, d1, ins) {
+  const S = v.out, want = S.slice(0, d0) + ins + S.slice(d1);
+  const cands = [];
+  if (d1 > d0) {
+    for (const alt of [0, 1, 2, 3, 5, 10, 9]) if ((alt !== 1 && alt !== 10) || ins) cands.push(mapEdit(raw, v, d0, d1, ins, alt));
+  } else {
+    const base = mapEdit(raw, v, d0, d1, ins, 0);
+    cands.push(base);
+    const lo = d0 > 0 ? v.B[d0 - 1] : 0, hi = d0 < S.length ? v.A[d0] : raw.length;
+    const pts = new Set([lo, hi]);
+    for (const g of v.groups) for (const x of [g.gs, g.rcs, g.rce, g.ge]) if (x >= lo && x <= hi) pts.add(x);
+    for (const lp of v.lps) for (const x of [lp.ls, lp.pe]) if (x >= lo && x <= hi) pts.add(x);
+    for (const x of [...pts].sort((a, b) => a - b)) if (x !== base[0] || x !== base[1]) cands.push([x, x, ins, ins.length]);
+  }
+  const list = raw.length > 50000 ? cands.slice(0, 3) : cands;
+  const attempt = (nr, caretRaw) => ({ raw: nr, view: stripMd(nr), caretRaw });
+  let first = null;
+  for (const [rs, re, insRaw, off] of list) {
+    const r = attempt(raw.slice(0, rs) + insRaw + raw.slice(re), rs + off);
+    if (r.view.out === want) return { raw: r.raw, view: r.view, viewCaret: d0 + ins.length };
+    if (!first) first = r;
+  }
+  // last resort: list bullets on the edited lines become plain • characters
+  if (raw.length <= 50000) {
+    let a = d0; while (a > 0 && S[a - 1] !== '\n') a--;
+    let b = d1; while (b < S.length && S[b] !== '\n') b++;
+    for (const [rs, re, insRaw, off] of list.slice(0, 3)) {
+      const edits = [[rs, re, insRaw]];
+      for (let i = a; i < b; i++) if ('•☐☑'.includes(S[i]) && raw.slice(v.A[i], v.B[i]) !== S[i] && (v.B[i] <= rs || v.A[i] >= re)) edits.push([v.A[i], v.B[i], S[i]]);
+      if (edits.length === 1) continue;
+      edits.sort((x, y) => (y[0] - x[0]) || (y[1] - x[1]));
+      let nr = raw, shift = 0;
+      for (const [s0, e0, t] of edits) { nr = nr.slice(0, s0) + t + nr.slice(e0); if (s0 < rs) shift += t.length - (e0 - s0); }
+      const r = attempt(nr, rs + off + shift);
+      if (r.view.out === want) return { raw: r.raw, view: r.view, viewCaret: d0 + ins.length };
+    }
+  }
+  return { raw: first.raw, view: first.view, viewCaret: rawToView(first.view, first.caretRaw) };
+}
+function rawToView(v, pos) {
+  const B = v.B; let lo = 0, hi = B.length;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (B[mid] > pos) hi = mid; else lo = mid + 1; }
+  return lo;
+}
+
+/* ============================================================
+   Helpers
+   ============================================================ */
+const $ = (id) => document.getElementById(id);
+const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent || '');
+const MOD = isMac ? '⌘' : 'Ctrl+';
+const ALT = isMac ? '⌥' : 'Alt+';
+const tabId = 't' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
+};
+const enc = new TextEncoder();
+const LIMIT = 250000;
+const fmt = (n) => n.toLocaleString('ko-KR');
+const esc = (s) => s.replace(/[&<>]/g, c => c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;');
+
+const ta = $('ta'), backdrop = $('backdrop'), stage = $('stage'), editorWrap = $('editorWrap');
+const rendered = $('rendered'), md = $('md');
+const tabsEl = $('tabs');
+
+/* ============================================================
+   Settings (per device)
+   ============================================================ */
+const settings = Object.assign({ wrap: true, zoom: 100, font: 'sans', status: true }, LS.get('memo.settings', {}));
+function saveSettings() { LS.set('memo.settings', settings); }
+function applySettings() {
+  ta.wrap = settings.wrap ? 'soft' : 'off';
+  editorWrap.classList.toggle('nowrap', !settings.wrap);
+  stage.classList.toggle('mono', settings.font === 'mono');
+  stage.style.setProperty('--fs', (16 * settings.zoom / 100).toFixed(2) + 'px');
+  $('status').hidden = !settings.status;
+  $('stZoom').textContent = settings.zoom + '%';
+}
+
+/* ============================================================
+   State
+   ============================================================ */
+const notes = new Map();        // id -> {id, name, body, createdAt, updatedAt, by}
+const saveSt = new Map();       // id -> save bookkeeping
+const hist = new Map();         // id -> {undo, redo, kind, t}
+const noteUI = new Map();       // id -> {caret, scroll}
+const creating = new Set();
+const remoteNew = new Set();
+let store = null, ready = false, gotSnap = false, readOnly = false;
+let cur = { id: null, raw: '' };
+let view = stripMd('');
+let mode = 'plain';
+let composing = false, pendingRemote = false;
+let lastInputType = '', forceKind = '';
+let renderedCaret = 0;
+let remoteFlashUntil = 0;
+let downloads = null;
+let escapeTab = false;
+
+/* ============================================================
+   Storage adapters
+   ============================================================ */
+function makeDbStore(db) {
+  const col = db.collection('notes');
+  return {
+    kind: 'db',
+    subscribe(onDocs, onErr) {
+      return col.onSnapshot(snap => onDocs(snap.docs.map(d => [d.id, d.data()]), snap.metadata), onErr);
+    },
+    newId() { return col.doc().id; },
+    save(id, data) { return db.doc('notes/' + id).set(data); },
+    remove(id) { return db.doc('notes/' + id).delete(); },
+  };
+}
+function makeLocalStore() {
+  const KEY = 'memo.localNotes';
+  let listener = null;
+  const read = () => LS.get(KEY, {}) || {};
+  const emitAll = () => { if (listener) listener(Object.entries(read()), { fromCache: false }); };
+  window.addEventListener('storage', e => { if (e.key === KEY) emitAll(); });
+  return {
+    kind: 'local',
+    subscribe(onDocs) { listener = onDocs; setTimeout(emitAll, 0); return () => { listener = null; }; },
+    newId() { return 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); },
+    async save(id, data) { const all = read(); all[id] = data; if (!LS.set(KEY, all)) throw { code: 'quota_exceeded' }; emitAll(); },
+    async remove(id) { const all = read(); delete all[id]; LS.set(KEY, all); emitAll(); },
+  };
+}
+
+/* ============================================================
+   Incoming data
+   ============================================================ */
+function busy(id) { const st = saveSt.get(id); return !!(st && (st.dirty || st.inFlight)); }
+function onDocs(entries) {
+  const seen = new Set();
+  let changedElsewhere = false;
+  for (const [id, data] of entries) {
+    if (!data || typeof data !== 'object') continue;
+    seen.add(id);
+    const prev = notes.get(id);
+    const nn = {
+      id,
+      name: typeof data.name === 'string' ? data.name : '',
+      body: typeof data.body === 'string' ? data.body : '',
+      createdAt: Number(data.createdAt) || 0,
+      updatedAt: Number(data.updatedAt) || 0,
+      by: typeof data.by === 'string' ? data.by : '',
+    };
+    const isBusy = busy(id);
+    if (isBusy && prev) { nn.body = prev.body; nn.name = prev.name; }
+    const fromElsewhere = nn.by !== tabId && !isBusy;
+    if (fromElsewhere && prev && gotSnap && (prev.body !== nn.body || prev.name !== nn.name)) changedElsewhere = true;
+    notes.set(id, nn);
+    if (id === cur.id) {
+      if (fromElsewhere && nn.body !== cur.raw) {
+        if (composing) pendingRemote = true;
+        else applyRemote(nn.body);
+      }
+    } else if (fromElsewhere && prev && prev.body !== nn.body) {
+      remoteNew.add(id);
+    }
+  }
+  for (const id of [...notes.keys()]) {
+    if (seen.has(id) || creating.has(id) || busy(id)) continue;
+    notes.delete(id); remoteNew.delete(id);
+    if (id === cur.id) { toast('다른 기기에서 이 메모를 삭제했어요'); openNote(pickDefault()); }
+  }
+  gotSnap = true;
+  if (!ready) becomeReady();
+  else if (cur.id === null && !cur.raw && notes.size) openNote(pickDefault());
+  if (changedElsewhere) flashRemote();
+  renderTabs();
+  updateSync();
+}
+function applyRemote(newRaw) {
+  const old = cur.raw;
+  const caret = getCaretRaw();
+  const scroller = mode === 'rendered' ? rendered : ta;
+  const top = scroller.scrollTop;
+  let p = 0; const m = Math.min(old.length, newRaw.length);
+  while (p < m && old[p] === newRaw[p]) p++;
+  let q = 0; while (q < m - p && old[old.length - 1 - q] === newRaw[newRaw.length - 1 - q]) q++;
+  const nc = caret <= p ? caret : caret >= old.length - q ? caret + (newRaw.length - old.length) : newRaw.length - q;
+  cur.raw = newRaw;
+  renderEditor();
+  scroller.scrollTop = top;
+  setCaretRaw(nc);
+  afterChange(true);
+}
+function flashRemote() {
+  remoteFlashUntil = Date.now() + 2600;
+  const el = $('stSync');
+  el.classList.add('got');
+  clearTimeout(flashRemote.t);
+  flashRemote.t = setTimeout(() => { el.classList.remove('got'); updateSync(); }, 2600);
+  updateSync();
+}
+function pickDefault() {
+  let best = null;
+  for (const n of notes.values()) if (!best || n.updatedAt > best.updatedAt) best = n;
+  return best ? best.id : null;
+}
+
+/* ============================================================
+   Saving
+   ============================================================ */
+function st(id) {
+  let s = saveSt.get(id);
+  if (!s) { s = { timer: 0, maxTimer: 0, inFlight: false, again: false, dirty: false, error: '', tooBig: false, promise: null }; saveSt.set(id, s); }
+  return s;
+}
+function markDirty(id) {
+  if (id == null) return;
+  const s = st(id);
+  s.dirty = true;
+  clearTimeout(s.timer);
+  s.timer = setTimeout(() => flush(id), 650);
+  if (!s.maxTimer) s.maxTimer = setTimeout(() => flush(id), 2500);
+  updateSync();
+}
+async function flush(id) {
+  const s = st(id);
+  clearTimeout(s.timer); clearTimeout(s.maxTimer); s.timer = s.maxTimer = 0;
+  if (s.deleted) return;
+  if (s.inFlight) { s.again = true; return; }
+  const n = notes.get(id);
+  if (!n) { s.dirty = false; return; }
+  const data = { name: n.name || '', body: n.body || '', createdAt: n.createdAt || Date.now(), updatedAt: Date.now(), by: tabId };
+  if (enc.encode(JSON.stringify(data)).length > LIMIT) { s.tooBig = true; updateSync(); return; }
+  s.tooBig = false;
+  s.inFlight = true; s.dirty = false; updateSync();
+  let retry = false;
+  s.promise = (async () => {
+    try {
+      await store.save(id, data);
+      s.error = '';
+      n.updatedAt = data.updatedAt;
+      creating.delete(id);
+    } catch (e) {
+      const code = e && e.code;
+      if (code === 'invalid_argument' || code === 'revoked' || code === 'not_granted' || code === 'capability_disabled' || code === 'capability_removed') {
+        setReadOnly(true); s.dirty = false; creating.delete(id);
+      } else if (code === 'quota_exceeded') {
+        s.error = 'quota'; s.dirty = true;
+        toast('저장 공간이 가득 찼어요. 쓰지 않는 메모를 지우면 다시 저장돼요.');
+      } else {
+        s.error = 'retry'; s.dirty = true; retry = true;
+      }
+    }
+  })();
+  await s.promise;
+  s.inFlight = false; s.promise = null;
+  if (s.again) { s.again = false; flush(id); }
+  else if (retry) setTimeout(() => flush(id), 1800 + Math.random() * 1500);
+  updateSync();
+}
+function flushAll() { for (const [id, s] of saveSt) if (s.dirty && !s.inFlight) flush(id); }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushAll(); });
+window.addEventListener('pagehide', flushAll);
+
+function updateSync() {
+  const el = $('stSync'), label = $('stSyncLabel');
+  let text, state;
+  const all = [...saveSt.values()];
+  if (!ready) { text = '불러오는 중'; state = 'wait'; }
+  else if (readOnly) { text = '보기 전용'; state = 'wait'; }
+  else if (all.some(s => s.tooBig && !s.deleted)) { text = '너무 길어서 저장하지 못했어요'; state = 'error'; }
+  else if (all.some(s => s.error === 'quota')) { text = '저장 공간이 가득 참'; state = 'error'; }
+  else if (all.some(s => s.error === 'retry')) { text = '연결을 다시 시도하는 중'; state = 'error'; }
+  else if (all.some(s => (s.dirty || s.inFlight) && !s.deleted)) { text = '저장 중…'; state = 'saving'; }
+  else if (store && store.kind === 'local') { text = '이 기기에만 저장돼요'; state = 'local'; }
+  else if (!gotSnap) { text = '연결 대기 중'; state = 'wait'; }
+  else if (Date.now() < remoteFlashUntil) { text = '다른 기기에서 받아왔어요'; state = 'ok'; }
+  else { text = '모든 기기와 동기화됨'; state = 'ok'; }
+  el.dataset.state = state;
+  label.textContent = text;
+}
+
+/* ============================================================
+   Editing
+   ============================================================ */
+function ensureNote() {
+  if (cur.id != null) return;
+  const id = store.newId(), now = Date.now();
+  notes.set(id, { id, name: '', body: cur.raw, createdAt: now, updatedAt: now, by: tabId });
+  creating.add(id);
+  const h = hist.get('_new'); if (h) { hist.set(id, h); hist.delete('_new'); }
+  cur.id = id;
+  renderTabs();
+}
+function H(id) {
+  const k = id == null ? '_new' : id;
+  let h = hist.get(k);
+  if (!h) { h = { undo: [], redo: [], kind: '', t: 0 }; hist.set(k, h); }
+  return h;
+}
+function recordHistory(kind, ins) {
+  const h = H(cur.id);
+  const now = Date.now();
+  const boundary = typeof ins === 'string' && /\s/.test(ins);
+  const coalesce = (kind === 'type' || kind === 'delete' || kind === 'compose') && h.kind === kind && now - h.t < 1200 && !boundary;
+  if (!coalesce) { h.undo.push(cur.raw); if (h.undo.length > 300) h.undo.shift(); }
+  h.redo.length = 0; h.kind = kind; h.t = now;
+}
+function kindOf(t) {
+  if (forceKind) { const k = forceKind; forceKind = ''; return k; }
+  if (!t) return 'other';
+  if (t === 'insertText') return 'type';
+  if (t === 'insertCompositionText') return 'compose';
+  if (t.startsWith('delete')) return t === 'deleteByCut' || t === 'deleteByDrag' ? 'cut' : 'delete';
+  if (t === 'insertFromPaste' || t === 'insertFromDrop') return 'paste';
+  return 'other';
+}
+function commitRaw(newRaw, kind, ins) {
+  ensureNote();
+  if (newRaw === cur.raw) return;
+  recordHistory(kind, ins);
+  cur.raw = newRaw;
+  const n = notes.get(cur.id);
+  if (n) { n.body = newRaw; n.updatedAt = Date.now(); }
+  markDirty(cur.id);
+}
+function processPlain() {
+  const T = ta.value, S = view.out;
+  if (T === S) return;
+  if (readOnly || !ready) { ta.value = S; return; }
+  const c = ta.selectionEnd;
+  const maxQ = Math.min(T.length - c, S.length);
+  let q = 0; while (q < maxQ && T[T.length - 1 - q] === S[S.length - 1 - q]) q++;
+  const maxP = Math.min(T.length - q, S.length - q);
+  let p = 0; while (p < maxP && T[p] === S[p]) p++;
+  applyViewEdit(p, S.length - q, T.slice(p, T.length - q), kindOf(lastInputType), true);
+}
+function applyViewEdit(d0, d1, ins, kind, fromTextarea) {
+  const r = resolveEdit(cur.raw, view, d0, d1, ins);
+  commitRaw(r.raw, kind, ins);
+  view = r.view;
+  const caretV = r.viewCaret;
+  if (ta.value !== view.out) {
+    const top = ta.scrollTop, left = ta.scrollLeft;
+    ta.value = view.out;
+    ta.scrollTop = top; ta.scrollLeft = left;
+    ta.setSelectionRange(caretV, caretV);
+  } else if (!fromTextarea) {
+    ta.setSelectionRange(caretV, caretV);
+  }
+  afterChange();
+}
+function onRawInput() {
+  if (readOnly || !ready) { ta.value = cur.raw; return; }
+  const T = ta.value;
+  if (T === cur.raw) return;
+  commitRaw(T, kindOf(lastInputType), null);
+  afterChange();
+}
+function applyRawEdit(s, e, ins, kind) {
+  const nr = cur.raw.slice(0, s) + ins + cur.raw.slice(e);
+  commitRaw(nr, kind, ins);
+  const top = ta.scrollTop;
+  ta.value = cur.raw; ta.scrollTop = top;
+  ta.setSelectionRange(s + ins.length, s + ins.length);
+  afterChange();
+}
+function undo() { historyStep(true); }
+function redo() { historyStep(false); }
+function historyStep(back) {
+  if (readOnly || cur.id == null) return;
+  const h = H(cur.id);
+  const from = back ? h.undo : h.redo, to = back ? h.redo : h.undo;
+  if (!from.length) return;
+  const target = from.pop();
+  to.push(cur.raw);
+  h.kind = '';
+  const old = cur.raw;
+  let p = 0; const m = Math.min(old.length, target.length);
+  while (p < m && old[p] === target[p]) p++;
+  let q = 0; while (q < m - p && old[old.length - 1 - q] === target[target.length - 1 - q]) q++;
+  cur.raw = target;
+  const n = notes.get(cur.id); if (n) n.body = target;
+  markDirty(cur.id);
+  const top = ta.scrollTop;
+  renderEditor();
+  ta.scrollTop = top;
+  setCaretRaw(target.length - q);
+  afterChange();
+}
+
+function getCaretRaw() {
+  if (mode === 'rendered') return renderedCaret;
+  const i = ta.selectionStart;
+  if (mode === 'raw') return i;
+  if (!view.out.length) return cur.raw.length;
+  if (i <= 0) return view.A[0];
+  return view.B[Math.min(i, view.B.length) - 1];
+}
+function setCaretRaw(pos) {
+  pos = Math.max(0, Math.min(pos, cur.raw.length));
+  if (mode === 'rendered') { renderedCaret = pos; return; }
+  const i = mode === 'raw' ? pos : rawToView(view, pos);
+  try { ta.setSelectionRange(i, i); } catch {}
+}
+function renderEditor() {
+  if (mode === 'rendered') { renderMarkdown(); return; }
+  if (mode === 'plain') { view = stripMd(cur.raw); if (ta.value !== view.out) ta.value = view.out; }
+  else if (ta.value !== cur.raw) ta.value = cur.raw;
+}
+
+let tabsTimer = 0, findTimer = 0;
+function afterChange(remote) {
+  scheduleStatus();
+  clearTimeout(tabsTimer); tabsTimer = setTimeout(renderTabs, 250);
+  if (find.open) { clearTimeout(findTimer); findTimer = setTimeout(() => computeMatches(false), 120); }
+  if (!remote) updateSync();
+}
+
+/* textarea events */
+ta.addEventListener('beforeinput', (e) => {
+  if (e.inputType === 'historyUndo') { e.preventDefault(); undo(); return; }
+  if (e.inputType === 'historyRedo') { e.preventDefault(); redo(); return; }
+  lastInputType = e.inputType;
+});
+ta.addEventListener('input', (e) => {
+  if (mode === 'raw') { onRawInput(); return; }
+  if (mode !== 'plain') return;
+  if (e.isComposing || composing) return;
+  processPlain();
+});
+ta.addEventListener('compositionstart', () => { composing = true; });
+ta.addEventListener('compositionend', () => {
+  composing = false;
+  if (mode === 'plain') processPlain(); else if (mode === 'raw') onRawInput();
+  if (pendingRemote) {
+    pendingRemote = false;
+    const n = notes.get(cur.id);
+    if (n && !busy(cur.id) && n.body !== cur.raw) applyRemote(n.body);
+  }
+});
+ta.addEventListener('scroll', () => { backdrop.scrollTop = ta.scrollTop; backdrop.scrollLeft = ta.scrollLeft; });
+ta.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    if (escapeTab || e.shiftKey) { escapeTab = false; return; }
+    e.preventDefault();
+    insertAtCaret('\t');
+    return;
+  }
+  if (e.key === 'Escape') { escapeTab = true; return; }
+  escapeTab = false;
+});
+ta.addEventListener('blur', () => { escapeTab = false; });
+function insertAtCaret(s) {
+  if (readOnly || mode === 'rendered') return;
+  ta.focus();
+  let ok = false;
+  try { ok = document.execCommand('insertText', false, s); } catch {}
+  if (!ok) {
+    ta.setRangeText(s, ta.selectionStart, ta.selectionEnd, 'end');
+    lastInputType = 'insertText';
+    ta.dispatchEvent(new Event('input'));
+  }
+}
+
+/* ============================================================
+   Modes & rendering
+   ============================================================ */
+let mdReady = false;
+if (window.marked && window.DOMPurify) {
+  try {
+    marked.use({
+      gfm: true, breaks: true,
+      tokenizer: {
+        del(src) {
+          if (src[0] !== '~') return false;
+          if (src[1] !== '~') return { type: 'text', raw: '~', text: '~' };
+          const m = /^~~(?=[^\s~])((?:\\[\s\S]|[^\\])*?(?:\\[\s\S]|[^\s~\\]))~~(?=[^~]|$)/.exec(src);
+          if (m) return { type: 'del', raw: m[0], text: m[1], tokens: this.lexer.inlineTokens(m[1]) };
+          return false;
+        },
+      },
+    });
+    DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+      if (node.tagName === 'A') { node.setAttribute('target', '_blank'); node.setAttribute('rel', 'noopener noreferrer'); }
+    });
+    mdReady = true;
+  } catch { mdReady = false; }
+}
+function renderMarkdown() {
+  if (!cur.raw.trim()) {
+    md.className = 'md';
+    md.innerHTML = '<p class="empty">아직 내용이 없어요. ‘서식 제거 텍스트’나 ‘마크다운 원본’에서 입력하세요.</p>';
+    return;
+  }
+  if (mdReady) {
+    try {
+      md.className = 'md';
+      md.innerHTML = DOMPurify.sanitize(marked.parse(renderSource(cur.raw)), { ADD_ATTR: ['target'] });
+      return;
+    } catch {}
+  }
+  md.className = 'md fallback';
+  md.textContent = stripMd(cur.raw).out;
+}
+function setMode(m, focus = true) {
+  if (m === mode) { if (focus && m !== 'rendered') ta.focus(); return; }
+  if (composing) return;
+  const caret = getCaretRaw();
+  const from = mode === 'rendered' ? rendered : ta;
+  const ratio = from.scrollHeight > from.clientHeight ? from.scrollTop / (from.scrollHeight - from.clientHeight) : 0;
+  mode = m;
+  for (const b of document.querySelectorAll('#seg [role="radio"]')) {
+    const on = b.dataset.mode === m;
+    b.setAttribute('aria-checked', String(on));
+    b.tabIndex = on ? 0 : -1;
+  }
+  if (m === 'rendered') {
+    if (find.open) closeFind(false);
+    editorWrap.hidden = true; rendered.hidden = false;
+    renderedCaret = caret;
+    renderMarkdown();
+    rendered.scrollTop = ratio * (rendered.scrollHeight - rendered.clientHeight);
+  } else {
+    rendered.hidden = true; editorWrap.hidden = false;
+    ta.placeholder = placeholderText();
+    renderEditor();
+    setCaretRaw(caret);
+    ta.scrollTop = ratio * (ta.scrollHeight - ta.clientHeight);
+    if (focus) ta.focus({ preventScroll: true });
+    if (find.open) computeMatches(false);
+  }
+  scheduleStatus();
+}
+function placeholderText() {
+  if (!ready) return '메모를 불러오는 중…';
+  if (readOnly) return '';
+  return mode === 'raw' ? '마크다운을 기호까지 그대로 편집해요.' : '여기에 적어 보세요. 붙여넣은 마크다운은 기호 없이 보여요.';
+}
+
+/* ============================================================
+   Notes (tabs)
+   ============================================================ */
+function titleFrom(body) {
+  let s = 0;
+  while (s < body.length) {
+    let e = body.indexOf('\n', s); if (e === -1) e = body.length;
+    const line = body.slice(s, Math.min(e, s + 300));
+    const t = stripMd(line).out.replace(/[•☐☑\t]/g, ' ').trim();
+    if (t) return t.length > 40 ? t.slice(0, 40) + '…' : t;
+    s = e + 1;
+  }
+  return '';
+}
+function displayName(n) {
+  if (!n) return '새 메모';
+  const body = n.id === cur.id ? cur.raw : n.body;
+  return (n.name && n.name.trim()) || titleFrom(body) || '제목 없음';
+}
+function renderTabs() {
+  const list = [...notes.values()].sort((a, b) => (a.createdAt - b.createdAt) || (a.id < b.id ? -1 : 1));
+  const frag = document.createDocumentFragment();
+  const make = (n) => {
+    const id = n ? n.id : null;
+    const active = id === cur.id;
+    const wrap = document.createElement('div');
+    wrap.className = 'tab' + (active ? ' active' : '');
+    const main = document.createElement('button');
+    main.className = 'tab-main';
+    main.setAttribute('role', 'tab');
+    main.setAttribute('aria-selected', String(active));
+    main.tabIndex = active ? 0 : -1;
+    const name = displayName(n);
+    main.title = name + (id ? ' — 두 번 누르면 이름을 바꿔요' : '');
+    const label = document.createElement('span');
+    label.className = 'tab-name'; label.textContent = name;
+    main.appendChild(label);
+    if (id && remoteNew.has(id) && !active) {
+      const dot = document.createElement('span'); dot.className = 'tab-dot'; dot.title = '다른 기기에서 바뀌었어요';
+      main.appendChild(dot);
+    }
+    main.addEventListener('click', () => { if (id !== cur.id) openNote(id); else if (mode !== 'rendered') ta.focus(); });
+    main.addEventListener('dblclick', () => { if (id) renameNote(id); });
+    main.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        const all = [...tabsEl.querySelectorAll('.tab-main')];
+        const i = all.indexOf(main);
+        const nx = all[(i + (e.key === 'ArrowRight' ? 1 : -1) + all.length) % all.length];
+        if (nx) { nx.focus(); nx.click(); }
+        e.preventDefault();
+      }
+    });
+    wrap.appendChild(main);
+    if (!readOnly) {
+      const x = document.createElement('button');
+      x.className = 'tab-x';
+      x.setAttribute('aria-label', `‘${name}’ 메모 삭제`);
+      x.title = '메모 삭제';
+      x.innerHTML = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>';
+      x.addEventListener('click', (e) => { e.stopPropagation(); deleteNote(id); });
+      wrap.appendChild(x);
+    }
+    return wrap;
+  };
+  for (const n of list) frag.appendChild(make(n));
+  if (cur.id === null) frag.appendChild(make(null));
+  tabsEl.replaceChildren(frag);
+  const act = tabsEl.querySelector('.tab.active');
+  if (act) {
+    const l = act.offsetLeft, r = l + act.offsetWidth;
+    if (l < tabsEl.scrollLeft) tabsEl.scrollLeft = Math.max(0, l - 8);
+    else if (r > tabsEl.scrollLeft + tabsEl.clientWidth) tabsEl.scrollLeft = r - tabsEl.clientWidth + 8;
+  }
+}
+function openNote(id) {
+  if (composing) return;
+  if (cur.id != null) noteUI.set(cur.id, { caret: getCaretRaw(), scroll: (mode === 'rendered' ? rendered : ta).scrollTop });
+  const n = id != null ? notes.get(id) : null;
+  cur = { id: n ? id : null, raw: n ? n.body : '' };
+  remoteNew.delete(id);
+  renderEditor();
+  const ui = noteUI.get(id);
+  setCaretRaw(ui ? ui.caret : 0);
+  const sc = mode === 'rendered' ? rendered : ta;
+  sc.scrollTop = ui ? ui.scroll : 0;
+  if (find.open) computeMatches(false);
+  renderTabs();
+  scheduleStatus();
+}
+function newNote() {
+  if (!ready || readOnly) return;
+  if (cur.id === null && !cur.raw) { setMode(mode === 'rendered' ? 'plain' : mode); ta.focus(); return; }
+  const id = store.newId(), now = Date.now();
+  notes.set(id, { id, name: '', body: '', createdAt: now, updatedAt: now, by: tabId });
+  creating.add(id);
+  openNote(id);
+  flush(id);
+  if (mode === 'rendered') setMode('plain'); else ta.focus();
+}
+async function renameNote(id) {
+  if (!ready || readOnly) return;
+  if (id == null) { ensureNote(); id = cur.id; }
+  const n = notes.get(id); if (!n) return;
+  const v = await dialog({ title: '이름 바꾸기', message: '비워 두면 첫 줄이 이름이 돼요.', input: true, value: n.name || '', placeholder: titleFrom(n.id === cur.id ? cur.raw : n.body) || '제목 없음', confirm: '저장' });
+  if (v == null) return;
+  n.name = v.trim().slice(0, 80);
+  renderTabs();
+  markDirty(id); flush(id);
+}
+async function deleteNote(id) {
+  if (!ready || readOnly) return;
+  if (id == null) {
+    if (cur.raw && !(await dialog({ title: '메모를 비울까요?', message: '아직 저장되지 않은 내용이에요.', confirm: '비우기', danger: true }))) return;
+    cur.raw = ''; hist.delete('_new'); renderEditor(); renderTabs(); scheduleStatus(); return;
+  }
+  const n = notes.get(id); if (!n) return;
+  const body = id === cur.id ? cur.raw : n.body;
+  if (body.trim()) {
+    const ok = await dialog({ title: '메모를 삭제할까요?', message: `‘${displayName(n)}’ 메모가 연결된 모든 기기에서 사라져요. 되돌릴 수 없어요.`, confirm: '삭제', danger: true });
+    if (!ok) return;
+  }
+  const s = st(id);
+  clearTimeout(s.timer); clearTimeout(s.maxTimer);
+  s.deleted = true; s.dirty = false;
+  const list = [...notes.values()].sort((a, b) => (a.createdAt - b.createdAt) || (a.id < b.id ? -1 : 1));
+  const idx = list.findIndex(x => x.id === id);
+  notes.delete(id); hist.delete(id); remoteNew.delete(id); creating.delete(id);
+  if (id === cur.id) {
+    const rest = list.filter(x => x.id !== id);
+    const next = rest[Math.min(idx, rest.length - 1)];
+    openNote(next ? next.id : null);
+  }
+  renderTabs(); updateSync();
+  try {
+    if (s.promise) await s.promise;
+    await store.remove(id);
+    saveSt.delete(id);
+  } catch { toast('메모를 삭제하지 못했어요. 잠시 후 다시 해 주세요.'); }
+  updateSync();
+}
+function setReadOnly(v) {
+  if (readOnly === v) return;
+  readOnly = v;
+  ta.readOnly = v || !ready;
+  ta.placeholder = placeholderText();
+  const b = $('banner');
+  b.hidden = !v;
+  b.textContent = v ? '이 메모장은 보기만 할 수 있어요. 다른 기기에서 쓴 내용은 계속 실시간으로 보여요.' : '';
+  $('newTab').hidden = v;
+  renderTabs(); updateSync();
+}
+
+/* ============================================================
+   Copy all, files
+   ============================================================ */
+async function copyAll() {
+  let text, html = null, msg;
+  if (mode === 'raw') { text = cur.raw; msg = '마크다운 원본을 그대로 복사했어요'; }
+  else if (mode === 'plain') { text = stripMd(cur.raw).out; msg = '서식을 뺀 텍스트로 복사했어요'; }
+  else { text = stripMd(cur.raw).out; html = cur.raw.trim() ? md.innerHTML : ''; msg = '서식을 적용한 채로 복사했어요'; }
+  if (!text) { toast('복사할 내용이 없어요'); return; }
+  let ok = false;
+  try {
+    if (html && window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+      await navigator.clipboard.write([new ClipboardItem({
+        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/plain': new Blob([text], { type: 'text/plain' }),
+      })]);
+      ok = true;
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text); ok = true;
+    }
+  } catch { ok = false; }
+  if (!ok) ok = legacyCopy(text, !!html);
+  toast(ok ? msg : `복사하지 못했어요. ${MOD}A로 모두 선택한 뒤 ${MOD}C로 복사해 주세요.`);
+}
+function legacyCopy(text, rich) {
+  const sel = window.getSelection();
+  try {
+    if (rich) {
+      const r = document.createRange(); r.selectNodeContents(md);
+      sel.removeAllRanges(); sel.addRange(r);
+      const ok = document.execCommand('copy');
+      sel.removeAllRanges();
+      return ok;
+    }
+    const t = document.createElement('textarea');
+    t.value = text; t.setAttribute('readonly', '');
+    t.style.cssText = 'position:fixed;top:-1000px;left:0;opacity:0';
+    document.body.appendChild(t);
+    t.select();
+    const ok = document.execCommand('copy');
+    t.remove();
+    return ok;
+  } catch { return false; }
+}
+function stampName() {
+  const d = new Date(), p = (x) => String(x).padStart(2, '0');
+  return `${String(d.getFullYear()).slice(2)}${p(d.getMonth() + 1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}_메모`;
+}
+function canSaveFiles() { return !!downloads || !HAS_CLAUDE; }
+async function saveOut(filename, data, okMsg) {
+  if (downloads) {
+    try { await downloads.save({ filename, data }); toast(okMsg); return true; }
+    catch (e) {
+      const code = e && e.code;
+      if (code === 'declined') return;
+      if (code === 'rate_limited') toast('잠시 후 다시 시도해 주세요');
+      else if (code === 'extension_not_enabled' || code === 'rejected_extension') toast('이 화면에서는 이 형식의 파일을 받을 수 없어요');
+      else toast('파일로 저장하지 못했어요');
+    }
+    return false;
+  }
+  if (!HAS_CLAUDE) {
+    // opened straight from a file: an ordinary browser download works here
+    try {
+      const type = /\.html$/.test(filename) ? 'text/html' : /\.md$/.test(filename) ? 'text/markdown' : 'text/plain';
+      const url = URL.createObjectURL(new Blob([data], { type: type + ';charset=utf-8' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.style.display = 'none';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      toast(okMsg);
+      return true;
+    } catch {}
+  }
+  toast('이 화면에서는 파일로 저장할 수 없어요');
+  return false;
+}
+async function saveFile(kind) {
+  const data = kind === 'md' ? cur.raw : stripMd(cur.raw).out;
+  if (!data) { toast('저장할 내용이 없어요'); return; }
+  await saveOut(stampName() + (kind === 'md' ? '.md' : '.txt'), data, '파일로 저장했어요');
+}
+$('fileInput').addEventListener('change', async (e) => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!f || !ready || readOnly) return;
+  let text;
+  try { text = (await f.text()).replace(/\r\n?/g, '\n').replace(/^\uFEFF/, ''); }
+  catch { toast('파일을 읽지 못했어요'); return; }
+  if (enc.encode(text).length > LIMIT - 2000) { toast('파일이 너무 커요. 약 25만 바이트까지 열 수 있어요.'); return; }
+  const id = store.newId(), now = Date.now();
+  notes.set(id, { id, name: f.name.replace(/\.(txt|md|markdown)$/i, '').slice(0, 80), body: text, createdAt: now, updatedAt: now, by: tabId });
+  creating.add(id);
+  openNote(id);
+  flush(id);
+  toast(`‘${f.name}’을 새 메모로 열었어요`);
+});
+
+/* ============================================================
+   Find & replace
+   ============================================================ */
+const find = { open: false, repl: false, matches: [], idx: -1 };
+const fq = $('fq'), fr = $('fr'), fcase = $('fcase');
+function findText() { return mode === 'raw' ? cur.raw : view.out; }
+function openFind(withReplace) {
+  if (mode === 'rendered') setMode('plain', false);
+  find.open = true;
+  find.repl = !!withReplace && !readOnly;
+  $('findbar').hidden = false;
+  syncReplUI();
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  if (e > s && e - s < 200) { const sel = ta.value.slice(s, e); if (!sel.includes('\n')) fq.value = sel; }
+  backdrop.hidden = false;
+  computeMatches(true);
+  (withReplace && fq.value ? fr : fq).focus();
+  fq.select();
+}
+function toggleFind(withReplace) {
+  const wantRepl = !!withReplace && !readOnly;
+  if (find.open && find.repl === wantRepl) { closeFind(); return; }
+  openFind(withReplace);
+}
+function closeFind(focusEditor = true) {
+  find.open = false;
+  $('findbar').hidden = true;
+  backdrop.textContent = '';
+  if (focusEditor && mode !== 'rendered') ta.focus();
+}
+function computeMatches(fromCaret) {
+  const q = fq.value;
+  const text = findText();
+  const prev = find.matches[find.idx];
+  find.matches = [];
+  if (q) {
+    const cs = fcase.checked;
+    const hay = cs ? text : text.toLowerCase();
+    const nee = cs ? q : q.toLowerCase();
+    const same = hay.length === text.length;
+    let i = 0;
+    while ((i = hay.indexOf(nee, i)) !== -1 && find.matches.length < 5000) {
+      find.matches.push([i, i + (same ? q.length : nee.length)]);
+      i += Math.max(1, nee.length);
+    }
+  }
+  if (!find.matches.length) find.idx = -1;
+  else {
+    const anchor = fromCaret ? ta.selectionStart : prev ? prev[0] : ta.selectionStart;
+    let k = find.matches.findIndex(m => m[0] >= anchor);
+    find.idx = k === -1 ? 0 : k;
+  }
+  renderBackdrop();
+  updateFindCount();
+}
+function updateFindCount() {
+  const c = $('fcount');
+  if (!fq.value) c.textContent = '';
+  else if (!find.matches.length) c.textContent = '결과 없음';
+  else c.textContent = `${fmt(find.idx + 1)}/${fmt(find.matches.length)}`;
+}
+function renderBackdrop() {
+  if (!find.open || !find.matches.length || mode === 'rendered') { backdrop.textContent = ''; return; }
+  const text = findText();
+  let html = '', last = 0;
+  find.matches.forEach(([s, e], k) => {
+    html += esc(text.slice(last, s)) + (k === find.idx ? '<mark class="cur">' : '<mark>') + esc(text.slice(s, e)) + '</mark>';
+    last = e;
+  });
+  html += esc(text.slice(last)) + '\u200b';
+  backdrop.innerHTML = html;
+  backdrop.scrollTop = ta.scrollTop; backdrop.scrollLeft = ta.scrollLeft;
+}
+function scrollToCurrent() {
+  const el = backdrop.querySelector('mark.cur');
+  if (!el) return;
+  const top = el.offsetTop, h = ta.clientHeight;
+  if (top < ta.scrollTop + 16 || top > ta.scrollTop + h - 48) ta.scrollTop = Math.max(0, top - h / 3);
+  if (!settings.wrap) {
+    const left = el.offsetLeft, w = ta.clientWidth;
+    if (left < ta.scrollLeft || left > ta.scrollLeft + w - 60) ta.scrollLeft = Math.max(0, left - w / 3);
+  }
+  backdrop.scrollTop = ta.scrollTop; backdrop.scrollLeft = ta.scrollLeft;
+}
+function findStep(dir) {
+  if (!find.open) { openFind(false); if (!fq.value) return; }
+  if (!find.matches.length) { computeMatches(false); if (!find.matches.length) { updateFindCount(); return; } }
+  find.idx = (find.idx + dir + find.matches.length) % find.matches.length;
+  selectCurrent();
+}
+function selectCurrent() {
+  const m = find.matches[find.idx]; if (!m) return;
+  ta.setSelectionRange(m[0], m[1]);
+  renderBackdrop(); updateFindCount(); scrollToCurrent();
+}
+function replaceOne() {
+  if (readOnly) return;
+  computeMatches(false);
+  if (!find.matches.length) return;
+  // the highlighted match is replaced right away, then the next one is highlighted
+  const m = find.matches[find.idx];
+  const rep = fr.value;
+  if (mode === 'raw') applyRawEdit(m[0], m[1], rep, 'replace');
+  else applyViewEdit(m[0], m[1], rep, 'replace', false);
+  const after = m[0] + rep.length;
+  ta.setSelectionRange(after, after);
+  computeMatches(true);
+  if (find.matches.length) selectCurrent();
+}
+function replaceAll() {
+  if (readOnly || !find.matches.length) return;
+  const rep = fr.value, ms = find.matches.slice();
+  let raw = cur.raw;
+  if (mode === 'raw') {
+    for (let k = ms.length - 1; k >= 0; k--) raw = raw.slice(0, ms[k][0]) + rep + raw.slice(ms[k][1]);
+  } else {
+    let lastStart = Infinity;
+    for (let k = ms.length - 1; k >= 0; k--) {
+      const [rs, re, insRaw] = mapEdit(cur.raw, view, ms[k][0], ms[k][1], rep);
+      if (re > lastStart) continue;
+      raw = raw.slice(0, rs) + insRaw + raw.slice(re);
+      lastStart = rs;
+    }
+  }
+  commitRaw(raw, 'replace', rep);
+  const top = ta.scrollTop;
+  renderEditor(); ta.scrollTop = top;
+  afterChange();
+  computeMatches(true);
+  toast(`${fmt(ms.length)}개를 바꿨어요`);
+}
+fq.addEventListener('input', () => { computeMatches(true); if (find.matches.length) { renderBackdrop(); scrollToCurrent(); } });
+fq.addEventListener('keydown', (e) => {
+  if (e.isComposing) return;
+  if (e.key === 'Enter') { e.preventDefault(); findStep(e.shiftKey ? -1 : 1); }
+});
+fr.addEventListener('keydown', (e) => {
+  if (e.isComposing) return;
+  if (e.key === 'Enter') { e.preventDefault(); if (e.ctrlKey || e.metaKey) replaceAll(); else replaceOne(); }
+});
+fcase.addEventListener('change', () => computeMatches(true));
+$('fnext').addEventListener('click', () => findStep(1));
+$('fprev').addEventListener('click', () => findStep(-1));
+$('fclose').addEventListener('click', () => closeFind());
+function syncReplUI() {
+  const t = $('ftoggle');
+  $('replrow').hidden = !find.repl;
+  t.style.visibility = readOnly ? 'hidden' : '';
+  t.setAttribute('aria-expanded', String(find.repl));
+  const label = find.repl ? '바꾸기 접기' : '바꾸기 펼치기';
+  t.setAttribute('aria-label', label);
+  t.title = `${label} (${MOD}H)`;
+}
+$('ftoggle').addEventListener('click', () => {
+  if (readOnly) return;
+  find.repl = !find.repl;
+  syncReplUI();
+  (find.repl ? fr : fq).focus();
+});
+$('frep').addEventListener('click', replaceOne);
+$('frepall').addEventListener('click', replaceAll);
+
+/* ============================================================
+   Go to line, time/date, select, edit commands
+   ============================================================ */
+function scrollToViewPos(pos) {
+  const text = ta.value;
+  backdrop.innerHTML = esc(text.slice(0, pos)) + '<span id="caretProbe">\u200b</span>' + esc(text.slice(pos)) + '\u200b';
+  const el = document.getElementById('caretProbe');
+  if (el) ta.scrollTop = Math.max(0, el.offsetTop - ta.clientHeight / 3);
+  renderBackdrop();
+  backdrop.scrollTop = ta.scrollTop;
+}
+async function gotoLine() {
+  if (mode === 'rendered') setMode('plain', false);
+  const text = ta.value;
+  const total = text.split('\n').length;
+  const curLine = text.slice(0, ta.selectionStart).split('\n').length;
+  const v = await dialog({ title: '줄 이동', message: `이동할 줄 번호를 입력하세요. (1–${fmt(total)})`, input: true, inputMode: 'numeric', value: String(curLine), confirm: '이동' });
+  if (v == null) return;
+  let n = parseInt(v, 10);
+  if (!(n >= 1)) { toast('줄 번호를 숫자로 입력해 주세요'); return; }
+  n = Math.min(n, total);
+  let pos = 0;
+  for (let i = 1; i < n; i++) pos = text.indexOf('\n', pos) + 1;
+  ta.focus();
+  ta.setSelectionRange(pos, pos);
+  scrollToViewPos(pos);
+  scheduleStatus();
+}
+function selectAll() {
+  if (mode === 'rendered') {
+    const r = document.createRange(); r.selectNodeContents(md);
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+  } else { ta.focus(); ta.select(); }
+}
+function execEdit(cmd) {
+  if (mode === 'rendered') { if (cmd === 'copy') document.execCommand('copy'); return; }
+  ta.focus();
+  let ok = false;
+  try { ok = document.execCommand(cmd); } catch {}
+  if (!ok && cmd !== 'delete') toast(`${cmd === 'cut' ? '잘라내기는 ' + MOD + 'X' : '복사는 ' + MOD + 'C'}를 눌러 주세요`);
+}
+async function pasteCmd() {
+  if (readOnly || mode === 'rendered' || !ready) return;
+  try {
+    const t = await navigator.clipboard.readText();
+    if (!t) return;
+    forceKind = 'paste';
+    insertAtCaret(t);
+  } catch { toast(`보안 설정 때문에 메뉴로는 붙여넣을 수 없어요. ${MOD}V를 눌러 주세요.`); }
+}
+function zoom(delta) {
+  settings.zoom = delta === 0 ? 100 : Math.max(50, Math.min(300, settings.zoom + delta));
+  saveSettings(); applySettings(); renderBackdrop();
+}
+
+/* ============================================================
+   Menus
+   ============================================================ */
+const SIG = 'Sk9PTnxlZHVlZHVqb29uQGdtYWlsLmNvbXwyMDI2LTA5LTIy';
+const [SIG_NAME, SIG_MAIL, SIG_DATE] = atob(SIG).split('|');
+function showAbout() {
+  const layer = $('aboutLayer'), who = $('aboutWho'), ok = $('aboutOk');
+  const [y, m, d] = SIG_DATE.split('-').map(Number);
+  const line = (cls, text) => { const el = document.createElement('span'); el.className = cls; el.textContent = text; return el; };
+  who.replaceChildren(line('n', SIG_NAME), line('m', SIG_MAIL), line('d', `${y}. ${m}. ${d}.`));
+  const prev = document.activeElement;
+  layer.hidden = false;
+  const close = () => { layer.hidden = true; layer.onkeydown = layer.onmousedown = ok.onclick = null; if (prev && prev.focus) prev.focus({ preventScroll: true }); };
+  ok.onclick = close;
+  layer.onmousedown = (e) => { if (e.target === layer) close(); };
+  layer.onkeydown = (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if (e.key === 'Tab') e.preventDefault();
+  };
+  setTimeout(() => ok.focus(), 0);
+}
+try { console.info(`메모장 ${SIG_NAME} <${SIG_MAIL}> ${SIG_DATE} MIT License`); } catch {}
+
+const cmds = {
+  about: showAbout,
+  newNote, openFile: () => { if (ready && !readOnly) $('fileInput').click(); },
+  saveTxt: () => saveFile('txt'), saveMd: () => saveFile('md'),
+  rename: () => renameNote(cur.id), del: () => deleteNote(cur.id),
+  undo, redo,
+  cut: () => execEdit('cut'), copy: () => execEdit('copy'), paste: pasteCmd, deleteSel: () => execEdit('delete'),
+  find: () => openFind(false), findNext: () => findStep(1), findPrev: () => findStep(-1),
+  replace: () => openFind(true), goto: gotoLine, selectAll,
+  wrap: () => { settings.wrap = !settings.wrap; saveSettings(); applySettings(); renderBackdrop(); },
+  fontSans: () => { settings.font = 'sans'; saveSettings(); applySettings(); renderBackdrop(); },
+  fontMono: () => { settings.font = 'mono'; saveSettings(); applySettings(); renderBackdrop(); },
+  modePlain: () => setMode('plain'), modeRendered: () => setMode('rendered'), modeRaw: () => setMode('raw'),
+  zoomIn: () => zoom(10), zoomOut: () => zoom(-10), zoomReset: () => zoom(0),
+  statusbar: () => { settings.status = !settings.status; saveSettings(); applySettings(); },
+};
+const checks = {
+  wrap: () => settings.wrap, fontSans: () => settings.font === 'sans', fontMono: () => settings.font === 'mono',
+  modePlain: () => mode === 'plain', modeRendered: () => mode === 'rendered', modeRaw: () => mode === 'raw',
+  statusbar: () => settings.status,
+};
+for (const k of document.querySelectorAll('kbd[data-mod]')) k.textContent = MOD + k.dataset.mod;
+for (const k of document.querySelectorAll('kbd[data-alt]')) k.textContent = ALT + k.dataset.alt;
+
+let openMenu = null;
+function refreshMenu(pop) {
+  for (const mi of pop.querySelectorAll('.mi')) {
+    const need = mi.dataset.need;
+    let disabled = false;
+    if (need === 'write') disabled = readOnly || !ready;
+    if (need === 'edit') disabled = readOnly || !ready || mode === 'rendered';
+    if (need === 'downloads') disabled = !canSaveFiles();
+    if (mi.dataset.cmd === 'openFile' || mi.dataset.cmd === 'newNote') disabled = readOnly || !ready;
+    mi.setAttribute('aria-disabled', String(disabled));
+    if (mi.dataset.check) mi.setAttribute('aria-checked', String(checks[mi.dataset.check]()));
+  }
+}
+function showMenu(menu, focusFirst) {
+  if (openMenu && openMenu !== menu) hideMenu();
+  const btn = menu.querySelector('.menu-btn'), pop = menu.querySelector('.menu-pop');
+  refreshMenu(pop);
+  pop.hidden = false; btn.setAttribute('aria-expanded', 'true');
+  openMenu = menu;
+  if (focusFirst) { const f = pop.querySelector('.mi:not([aria-disabled="true"])'); if (f) f.focus(); }
+}
+function hideMenu(focusBtn) {
+  if (!openMenu) return;
+  const btn = openMenu.querySelector('.menu-btn');
+  openMenu.querySelector('.menu-pop').hidden = true;
+  btn.setAttribute('aria-expanded', 'false');
+  if (focusBtn) btn.focus();
+  openMenu = null;
+}
+const menuEls = [...document.querySelectorAll('.menu')];
+for (const menu of menuEls) {
+  const btn = menu.querySelector('.menu-btn'), pop = menu.querySelector('.menu-pop');
+  btn.addEventListener('mousedown', (e) => e.preventDefault());
+  btn.addEventListener('click', (e) => { if (openMenu === menu) hideMenu(); else showMenu(menu, e.detail === 0); });
+  btn.addEventListener('mouseenter', () => { if (openMenu && openMenu !== menu) showMenu(menu, false); });
+  btn.addEventListener('keydown', (e) => { if (e.key === 'ArrowDown') { e.preventDefault(); showMenu(menu, true); } });
+  pop.addEventListener('mousedown', (e) => e.preventDefault());
+  pop.addEventListener('click', (e) => {
+    const mi = e.target.closest('.mi'); if (!mi) return;
+    if (mi.getAttribute('aria-disabled') === 'true') return;
+    hideMenu();
+    const f = cmds[mi.dataset.cmd]; if (f) f();
+  });
+  pop.addEventListener('keydown', (e) => {
+    const items = [...pop.querySelectorAll('.mi:not([aria-disabled="true"])')];
+    const i = items.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); (items[i + 1] || items[0]).focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); (items[i - 1] || items[items.length - 1]).focus(); }
+    else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const j = menuEls.indexOf(menu), nx = menuEls[(j + (e.key === 'ArrowRight' ? 1 : -1) + menuEls.length) % menuEls.length];
+      showMenu(nx, true);
+    } else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); hideMenu(true); }
+    else if (e.key === 'Tab') hideMenu();
+  });
+}
+document.addEventListener('mousedown', (e) => { if (openMenu && !openMenu.contains(e.target)) hideMenu(); });
+
+/* segmented control */
+const seg = $('seg');
+for (const b of seg.querySelectorAll('[role="radio"]')) {
+  b.addEventListener('click', () => setMode(b.dataset.mode));
+}
+seg.addEventListener('keydown', (e) => {
+  if (!['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(e.key)) return;
+  e.preventDefault();
+  const order = ['plain', 'raw', 'rendered'];
+  const i = order.indexOf(mode);
+  const nx = order[(i + (e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : -1) + 3) % 3];
+  setMode(nx, false);
+  seg.querySelector(`[data-mode="${nx}"]`).focus();
+});
+$('copyAll').addEventListener('click', copyAll);
+$('newTab').addEventListener('click', newNote);
+
+/* ============================================================
+   Global shortcuts
+   ============================================================ */
+document.addEventListener('keydown', (e) => {
+  if (!$('dlgLayer').hidden || !$('aboutLayer').hidden) return;
+  const mod = isMac ? e.metaKey : e.ctrlKey;
+  const t = e.target;
+  const inEditor = t === ta || t === document.body || t === rendered || (t && t.closest && t.closest('.bar, .top, .status'));
+  const inFindInput = t === fq || t === fr;
+  if (mod && !e.altKey) {
+    const k = e.key.toLowerCase();
+    if (inEditor && k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
+    if (inEditor && ((k === 'z' && e.shiftKey) || k === 'y')) { e.preventDefault(); redo(); return; }
+    if (k === 'f') { e.preventDefault(); toggleFind(false); return; }
+    if (k === 'h') { e.preventDefault(); toggleFind(true); return; }
+    if (k === 'g') { e.preventDefault(); gotoLine(); return; }
+    if (k === 's') { e.preventDefault(); flushAll(); toast(store && store.kind === 'local' ? '이 기기에 저장했어요' : '자동으로 저장하고 있어요'); return; }
+    if (k === '=' || k === '+') { e.preventDefault(); zoom(10); return; }
+    if (k === '-') { e.preventDefault(); zoom(-10); return; }
+    if (k === '0') { e.preventDefault(); zoom(0); return; }
+    if (k === 'a' && mode === 'rendered' && !inFindInput) { e.preventDefault(); selectAll(); return; }
+  }
+  if (e.altKey && !e.ctrlKey && !e.metaKey) {
+    if (e.code === 'Digit1') { e.preventDefault(); setMode('plain'); return; }
+    if (e.code === 'Digit2') { e.preventDefault(); setMode('raw'); return; }
+    if (e.code === 'Digit3') { e.preventDefault(); setMode('rendered'); return; }
+    if (e.code === 'KeyN') { e.preventDefault(); newNote(); return; }
+  }
+  if (e.key === 'F3') { e.preventDefault(); findStep(e.shiftKey ? -1 : 1); return; }
+  if (e.key === 'Escape') {
+    if (openMenu) { hideMenu(true); return; }
+    if (find.open && (inFindInput || t === ta || t.closest && t.closest('#findbar'))) { e.preventDefault(); closeFind(); }
+  }
+}, true);
+
+/* ============================================================
+   Status bar
+   ============================================================ */
+let statusRaf = 0;
+function scheduleStatus() { if (!statusRaf) statusRaf = requestAnimationFrame(updateStatus); }
+function updateStatus() {
+  statusRaf = 0;
+  const pos = $('stPos'), cnt = $('stCount');
+  const text = mode === 'raw' ? cur.raw : mode === 'plain' ? view.out : stripMd(cur.raw).out;
+  const chars = text.length > 300000 ? text.length : [...text].length;
+  cnt.textContent = `${fmt(chars)}자`;
+  if (mode === 'rendered') { pos.textContent = '서식 적용 화면 (읽기 전용)'; return; }
+  const i = ta.selectionStart;
+  const before = ta.value.slice(0, i);
+  const line = (before.match(/\n/g) || []).length + 1;
+  const col = i - before.lastIndexOf('\n');
+  pos.textContent = `줄 ${fmt(line)}, 열 ${fmt(col)}`;
+}
+document.addEventListener('selectionchange', () => { if (document.activeElement === ta) scheduleStatus(); });
+ta.addEventListener('keyup', scheduleStatus);
+ta.addEventListener('click', scheduleStatus);
+
+/* ============================================================
+   Toast & dialog
+   ============================================================ */
+function toast(msg) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => el.classList.remove('show'), 2600);
+}
+function dialog({ title, message = '', input = false, inputMode = 'text', value = '', placeholder = '', confirm = '확인', cancel = '취소', danger = false }) {
+  return new Promise((resolve) => {
+    const layer = $('dlgLayer'), inp = $('dlgInput'), ok = $('dlgOk'), no = $('dlgCancel');
+    const prevFocus = document.activeElement;
+    $('dlgTitle').textContent = title;
+    $('dlgMsg').textContent = message;
+    $('dlgMsg').hidden = !message;
+    inp.hidden = !input; inp.value = value; inp.placeholder = placeholder; inp.inputMode = inputMode;
+    ok.textContent = confirm; no.textContent = cancel;
+    ok.className = 'btn ' + (danger ? 'danger' : 'primary');
+    layer.hidden = false;
+    hideMenu();
+    const done = (v) => {
+      layer.hidden = true;
+      ok.onclick = no.onclick = layer.onmousedown = layer.onkeydown = null;
+      if (prevFocus && prevFocus.focus) prevFocus.focus({ preventScroll: true });
+      resolve(v);
+    };
+    ok.onclick = () => done(input ? inp.value : true);
+    no.onclick = () => done(input ? null : false);
+    layer.onmousedown = (e) => { if (e.target === layer) done(input ? null : false); };
+    layer.onkeydown = (e) => {
+      if (e.isComposing) return;
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); done(input ? null : false); }
+      else if (e.key === 'Enter' && (e.target === inp || !input) && e.target !== no) { e.preventDefault(); done(input ? inp.value : true); }
+      else if (e.key === 'Tab') {
+        const f = [inp, no, ok].filter(x => !x.hidden);
+        const i = f.indexOf(document.activeElement);
+        e.preventDefault();
+        f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+      }
+    };
+    setTimeout(() => { if (input) { inp.focus(); inp.select(); } else (danger ? no : ok).focus(); }, 0);
+  });
+}
+
+/* ============================================================
+   Start
+   ============================================================ */
+function becomeReady() {
+  ready = true;
+  ta.readOnly = readOnly;
+  ta.placeholder = placeholderText();
+  const id = pickDefault();
+  openNote(id);
+  updateSync();
+}
+async function start() {
+  applySettings();
+  renderTabs();
+  updateSync();
+  scheduleStatus();
+  const hasClaude = !!(window.claude && typeof window.claude.use === 'function');
+  const dlP = hasClaude ? window.claude.use('downloads').catch(() => null) : Promise.resolve(null);
+  dlP.then(d => { downloads = d || null; });
+  let db = null;
+  if (hasClaude) { try { db = await window.claude.use('db'); } catch { db = null; } }
+  store = db ? makeDbStore(db) : makeLocalStore();
+  if (!db) toast('실시간 동기화를 쓸 수 없어서 이 기기에만 저장해요');
+  subscribe();
+  setTimeout(() => { if (!ready) becomeReady(); }, 8000);
+}
+let unsub = null, resubTries = 0;
+function subscribe() {
+  try {
+    unsub = store.subscribe(onDocs, (err) => {
+      const code = err && err.code;
+      if (code === 'revoked') { setReadOnly(true); return; }
+      if (!gotSnap && store.kind === 'db') {
+        store = makeLocalStore();
+        toast('실시간 동기화를 시작하지 못해서 이 기기에만 저장해요');
+        subscribe();
+        return;
+      }
+      if (resubTries < 5) { resubTries++; setTimeout(subscribe, 2000 * resubTries); }
+      updateSync();
+    });
+  } catch {
+    if (store.kind === 'db') { store = makeLocalStore(); subscribe(); }
+  }
+}
+start();
+})();
+</script>
+</body>
+</html>
