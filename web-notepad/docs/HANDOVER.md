@@ -96,8 +96,10 @@ python web-notepad/tools/build_demo.py
 - `<link rel="icon">` — 외부 파일 없이 복제본에도 따라가는 📋 SVG data URL 파비콘이에요.
 - `openFind`, `computeMatches`, `replaceAll` — 찾기와 바꾸기예요.
 - `saveOut`, `saveFile` — 파일로 저장이에요.
-- `loadDefaultUsage`, `embeddedCloneSourceBlock`, `buildCloneKit`, `openClone` — 기본 가이드와 정적 복제 템플릿을 단일 HTML로 만들고 ChatGPT 미리보기 제작 요청문과 함께 복사·다운로드해요. 현재 DOM, 현재 주소의 HTML, localStorage는 읽지 않아요.
+- `loadDefaultUsage`, `embeddedCloneSourceBlock`, `buildCloneKit`, `openClone` — 기본 가이드와 정적 복제 템플릿을 단일 HTML로 만들고 Gemini Canvas 제작 요청문과 함께 다운로드·복사해요. 현재 DOM, 현재 주소의 HTML, localStorage는 읽지 않아요. **Gemini 열기**는 공식 앱 주소만 새 탭으로 열며 Canvas 선택이나 첨부를 자동화하지 않아요.
 - `tools/build_app.py` — 복제본에서 Google Fonts를 시스템 글꼴로 바꾸고, 고지를 보존한 `marked`와 `DOMPurify`를 인라인으로 넣고, 재복제에 쓸 정적 템플릿을 배포 파일에 삽입해요.
+
+복제본의 실행용 라이브러리와 그 안의 재복제용 정적 템플릿 사본은 오프라인 재복제를 위해 각각 필요해요. 생성기는 템플릿을 정규화한 뒤 한 번만 다시 삽입하므로 반복 빌드로 사본이 계속 늘어나지는 않아요.
 
 ## 6. 테스트
 
@@ -125,7 +127,7 @@ python web-notepad/tools/build_demo.py
 - **표 구조는 서식 제거 보기에서 바꾸기 어려워요.** 칸이나 줄을 바꿀 때는 마크다운 원본에서 고쳐야 해요.
 - **서식 적용 화면은 읽기 전용이에요.** 편집을 넣으려면 화면을 다시 마크다운으로 되돌리는 과정이 필요한데, 원본 서식이 마음대로 바뀌고 한글 입력이 불안정해져요.
 - **탭 아이콘은 넣을 수 없어요.** 게시된 앱은 claude.ai 페이지 안에서 동작해서, 탭 아이콘은 바깥 페이지가 정해요. 파일을 브라우저로 직접 열 때는 가능해요.
-- **ChatGPT 미리보기 기능과 권한은 환경에 따라 달라요.** Canvas 또는 HTML·React 미리보기를 제공하지 않거나 저장소·클립보드·다운로드를 제한할 수 있어요. 프롬프트는 미리보기를 최우선으로 요청하지만 실제 ChatGPT 결과는 별도로 확인해야 해요.
+- **Gemini Canvas 기능과 권한은 환경에 따라 달라요.** Canvas 앱 미리보기를 제공하지 않거나 저장소·클립보드·다운로드를 제한할 수 있어요. 프롬프트는 Canvas 미리보기를 최우선으로 요청하지만 실제 Gemini 결과는 별도로 확인해야 해요.
 
 ## 8. 남은 아이디어
 
