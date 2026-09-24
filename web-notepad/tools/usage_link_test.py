@@ -1,4 +1,4 @@
-import asyncio, urllib.parse
+import asyncio
 from playwright.async_api import async_playwright
 def ok(c, n, d=''): print(('✅ ' if c else '❌ ') + n + (f'  ({d})' if d else ''))
 async def route(r):
@@ -16,9 +16,12 @@ async def main():
         await A.click('[data-mode=rendered]'); await A.wait_for_timeout(500)
         a = await A.evaluate("""() => { const x = [...document.querySelectorAll('#md a')].find(e => e.href.includes('github.com/edujoon/web-notepad')); return x ? { text: x.textContent, href: x.href, target: x.target } : null; }""")
         ok(a and a['text'] == 'edujoon/web-notepad' and a['target'] == '_blank', 'USAGE 안내문의 프로젝트 링크', a['href'] if a else '없음')
-        dlg = await A.evaluate("""() => { const b = document.getElementById('getApp'); b.click(); const x = document.getElementById('cloneNew'); const h = x.href; document.getElementById('cloneClose').click(); return h; }""")
-        q = urllib.parse.unquote(dlg.split('?q=')[1]) if '?q=' in dlg else ''
-        ok(q.startswith('첨부한 HTML'), '복제 안내 창에 요청 문구 포함', q[:30] + '…')
+        await A.click('#webClone'); await A.wait_for_function("!document.querySelector('#cloneCopy').disabled")
+        dlg = await A.inner_text('#cloneLayer')
+        href = await A.get_attribute('#cloneChatGPT', 'href')
+        ok('코드와 제작 요청문을 복사해 ChatGPT에 붙여 넣으면' in dlg, '복제 안내 창에 사용 설명 포함')
+        ok(href == 'https://chatgpt.com', 'ChatGPT 열기 주소', href)
+        await A.click('#cloneClose')
         await A.click('[data-mode=raw]'); await A.wait_for_timeout(200)
         raw = await A.eval_on_selector('#ta', 'e => e.value')
         line = [l for l in raw.split('\n') if '프로젝트 저장소:' in l][0]

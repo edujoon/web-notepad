@@ -94,7 +94,7 @@ svg { display: block; }
 
 /* tabs */
 .top { display: flex; align-items: flex-end; gap: 2px; padding: 7px 8px 0; background: var(--desk); min-width: 0; }
-.tabs { position: relative; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+.tabs { position: relative; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; min-width: 0; flex: 1 1 auto; }
 .tabs::-webkit-scrollbar { display: none; }
 .tab { position: relative; display: flex; align-items: center; height: 34px; border-radius: 7px 7px 0 0; color: var(--muted); flex: 0 0 auto; }
 .tab:hover { background: rgba(127, 134, 150, .10); }
@@ -108,6 +108,9 @@ svg { display: block; }
 .tab-x:hover { background: var(--hover); color: var(--ink); }
 .newtab { width: 30px; height: 30px; margin: 0 0 2px 4px; border-radius: 6px; display: grid; place-items: center; color: var(--muted); flex: 0 0 auto; }
 .newtab:hover { background: rgba(127, 134, 150, .14); color: var(--ink); }
+.web-clone { height: 30px; margin: 0 0 2px 8px; padding: 0 11px; border: 1px solid var(--carbon-strong); border-radius: 7px; display: flex; align-items: center; gap: 6px; color: var(--carbon); background: var(--carbon-soft); font-size: 13px; font-weight: 600; white-space: nowrap; flex: 0 0 auto; }
+.web-clone:hover { filter: brightness(1.08); }
+.web-clone:active { filter: brightness(.96); }
 
 /* bar */
 .bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 8px; background: var(--paper); border-bottom: 1px solid var(--rule); flex-wrap: wrap; position: relative; z-index: 5; }
@@ -232,10 +235,27 @@ svg { display: block; }
 .dlg input { width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 7px; background: var(--paper); font-size: 15px; margin-bottom: 16px; }
 .dlg input:focus { outline: none; border-color: var(--carbon); box-shadow: 0 0 0 3px var(--carbon-soft); }
 .dlg-actions { display: flex; justify-content: flex-end; gap: 8px; }
-.btn { height: 36px; padding: 0 16px; border-radius: 7px; font-size: 14px; font-weight: 500; }
+.btn { height: 36px; padding: 0 16px; border-radius: 7px; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; white-space: nowrap; }
 .btn.ghost:hover { background: var(--hover); }
 .btn.primary { background: var(--carbon); color: var(--carbon-ink); }
+.btn.secondary { background: var(--carbon-soft); color: var(--carbon); }
+.btn:disabled { opacity: .48; cursor: wait; }
 .btn.danger { background: var(--danger); color: var(--paper); }
+
+.clone-dialog { width: min(620px, 100%); padding: 20px; }
+.clone-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.clone-head h2 { margin: 0; }
+.clone-close { width: 32px; height: 32px; border-radius: 6px; display: grid; place-items: center; color: var(--muted); flex: 0 0 auto; }
+.clone-close:hover { background: var(--hover); color: var(--ink); }
+.clone-intro { color: var(--ink) !important; }
+.clone-steps { display: flex; align-items: center; gap: 8px; margin: 18px 0 12px; padding: 0; list-style: none; counter-reset: clone-step; }
+.clone-steps .clone-step { position: relative; min-width: 0; flex: 1 1 0; padding: 10px 8px 10px 34px; border: 1px solid var(--rule); border-radius: 8px; font-size: 13px; line-height: 1.35; }
+.clone-steps .clone-step::before { counter-increment: clone-step; content: counter(clone-step); position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--carbon-soft); color: var(--carbon); font-size: 11px; font-weight: 700; }
+.clone-arrow { color: var(--faint); flex: 0 0 auto; }
+.clone-tip { margin-bottom: 8px !important; font-size: 13px !important; }
+.clone-status { min-height: 21px; margin: 0 0 14px !important; color: var(--faint) !important; font-size: 12.5px !important; }
+.clone-status[data-state="error"] { color: var(--danger) !important; }
+.clone-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
 
 .about { width: min(360px, 100%); padding-top: 22px; }
 .about-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
@@ -260,6 +280,13 @@ svg { display: block; }
   .seg .s { display: inline; }
   .seg button { padding: 5px 11px; }
   .menu-btn { padding: 5px 8px; }
+  .web-clone { width: 32px; padding: 0; justify-content: center; }
+  .web-clone .label { display: none; }
+  .clone-dialog { max-height: calc(100dvh - 24px); overflow-y: auto; padding: 16px; }
+  .clone-steps { align-items: stretch; flex-direction: column; gap: 6px; }
+  .clone-arrow { transform: rotate(90deg); align-self: center; line-height: 10px; }
+  .clone-actions { flex-direction: column; }
+  .clone-actions .btn { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .toast, .sheets .back, .ftoggle .chev { transition: none; }
@@ -272,6 +299,10 @@ svg { display: block; }
     <div class="tabs" id="tabs" role="tablist" aria-label="메모 목록"></div>
     <button class="newtab" id="newTab" title="새 메모 (Alt+N)" aria-label="새 메모">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
+    </button>
+    <button class="web-clone" id="webClone" title="실행 가능한 앱 소스와 제작 요청문 가져가기" aria-label="웹 복제">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8.5" rx="1.5"/><path d="M10.5 5.5V3.5A1.5 1.5 0 0 0 9 2H4A1.5 1.5 0 0 0 2.5 3.5v6A1.5 1.5 0 0 0 4 11h1.5"/><path d="M9.5 9.75h2.75M10.88 8.38v2.74"/></svg>
+      <span class="label">웹 복제</span>
     </button>
   </header>
 
@@ -410,6 +441,30 @@ svg { display: block; }
     <div class="about-who" id="aboutWho"></div>
     <p class="about-lic">자유롭게 복사하고 고쳐 쓸 수 있어요. <span>MIT License</span></p>
     <div class="dlg-actions"><button class="btn primary" id="aboutOk">닫기</button></div>
+  </div>
+</div>
+
+<div class="dlg-layer" id="cloneLayer" hidden>
+  <div class="dlg clone-dialog" role="dialog" aria-modal="true" aria-labelledby="cloneTitle" aria-describedby="cloneIntro cloneTip">
+    <div class="clone-head">
+      <h2 id="cloneTitle">웹 복제</h2>
+      <button class="clone-close" id="cloneClose" aria-label="웹 복제 안내 닫기" title="닫기">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </div>
+    <p class="clone-intro" id="cloneIntro">이 메모장을 나만의 웹앱으로 만들어 보세요. 코드와 제작 요청문을 복사해 ChatGPT에 붙여 넣으면 시작할 수 있어요. 내가 작성한 메모는 포함되지 않아요.</p>
+    <ol class="clone-steps" aria-label="웹 복제 순서">
+      <li class="clone-step">복사</li><li class="clone-arrow" aria-hidden="true">→</li>
+      <li class="clone-step">ChatGPT에 붙여넣기</li><li class="clone-arrow" aria-hidden="true">→</li>
+      <li class="clone-step">원하는 이름과 스타일 전달</li>
+    </ol>
+    <p class="clone-tip" id="cloneTip">내용이 길어 복사가 어렵다면 복제 파일을 다운로드한 뒤 ChatGPT 대화에 첨부하세요.</p>
+    <p class="clone-status" id="cloneStatus" role="status" aria-live="polite">복제 자료를 준비하고 있어요…</p>
+    <div class="clone-actions">
+      <button class="btn primary" id="cloneCopy" disabled>코드 + 프롬프트 복사</button>
+      <button class="btn secondary" id="cloneDownload" disabled>복제 파일 다운로드</button>
+      <a class="btn ghost" id="cloneChatGPT" href="https://chatgpt.com" target="_blank" rel="noopener noreferrer">ChatGPT 열기</a>
+    </div>
   </div>
 </div>
 
@@ -843,6 +898,22 @@ const LOCAL_NOTES_KEY = 'memo.localNotes';
 const USAGE_SEEDED_KEY = 'memo.usageGuideSeeded';
 const USAGE_NOTE_ID = 'usage-guide';
 const USAGE_URL = '/web-notepad/USAGE.md';
+/* __WEB_NOTEPAD_USAGE_START__ */
+const EMBEDDED_USAGE = null;
+/* __WEB_NOTEPAD_USAGE_END__ */
+const CLONE_PROMPT = `첨부한 코드를 바탕으로 나만의 웹 메모장을 만들어 줘. 기존 디자인과 기능은 최대한 유지하고, 먼저 앱 이름·사용자 표시 이름·대표 색상을 한 번에 질문해 줘. 내가 기본값으로 진행해 달라고 하면 추가 질문 없이 만들어 줘.
+
+개별화할 설정과 원제작자 출처 표시는 구분하고, 기존 라이선스와 출처는 유지해 줘. 원본 운영자의 배포 주소와 프로젝트 설정은 내 앱에 맞게 안내해 줘.
+
+메모는 사용자의 브라우저에 저장하고, 새 사용자를 위한 사용 가이드와 웹 복제 기능도 유지해 줘. 설명이나 일부 코드만 주지 말고 실제 실행 가능한 전체 파일을 제공해 줘.
+
+파일 생성 후 로컬에서 여는 방법과 내 계정으로 Vercel에 배포하는 방법을 초보자도 따라 할 수 있게 설명해 줘. 직접 실행하거나 배포하지 못한 단계는 완료했다고 말하지 말아 줘.
+
+아래 “실행 가능한 전체 HTML”은 예시나 화면 복사본이 아니라 현재 앱의 정적 소스야. 한 파일로 저장해 실행할 수 있도록 사용하고, 그 안의 외부 글꼴·라이브러리 참조, 기본 사용 가이드, 웹 복제 기능을 빠뜨리지 말아 줘. 브라우저 저장 데이터나 개인 메모는 첨부되지 않았어.`;
+const CLONE_PROMPT_START = '=====' + ' 제작 요청 프롬프트 시작 ' + '=====';
+const CLONE_PROMPT_END = '=====' + ' 제작 요청 프롬프트 끝 ' + '=====';
+const CLONE_CODE_START = '=====' + ' 실행 가능한 전체 HTML 시작 ' + '=====';
+const CLONE_CODE_END = '=====' + ' 실행 가능한 전체 HTML 끝 ' + '=====';
 const enc = new TextEncoder();
 const LIMIT = 250000;
 const fmt = (n) => n.toLocaleString('ko-KR');
@@ -915,6 +986,20 @@ function makeLocalStore() {
   };
 }
 
+async function loadDefaultUsage() {
+  if (typeof EMBEDDED_USAGE === 'string' && EMBEDDED_USAGE.trim()) {
+    return EMBEDDED_USAGE.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').trimEnd();
+  }
+  if (typeof window.__WEB_NOTEPAD_USAGE__ === 'string' && window.__WEB_NOTEPAD_USAGE__.trim()) {
+    return window.__WEB_NOTEPAD_USAGE__.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').trimEnd();
+  }
+  const response = await fetch(USAGE_URL, { cache: 'no-cache' });
+  if (!response.ok) throw new Error('usage_fetch_failed');
+  const body = (await response.text()).replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').trimEnd();
+  if (!body.trim()) throw new Error('usage_empty');
+  return body;
+}
+
 async function seedUsageGuide() {
   if (!store || store.kind !== 'local') return;
   let existing = null;
@@ -924,10 +1009,7 @@ async function seedUsageGuide() {
     return;
   }
   try {
-    const response = await fetch(USAGE_URL, { cache: 'no-cache' });
-    if (!response.ok) return;
-    const body = (await response.text()).replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').trimEnd();
-    if (!body.trim()) return;
+    const body = await loadDefaultUsage();
     if (localStorage.getItem(LOCAL_NOTES_KEY) !== null || LS.get(USAGE_SEEDED_KEY, false)) return;
     const now = Date.now();
     const initial = {
@@ -1587,6 +1669,132 @@ async function saveOut(filename, data, okMsg) {
   toast('이 화면에서는 파일로 저장할 수 없어요');
   return false;
 }
+
+/* ============================================================
+   Web clone kit (static source + prompt, never the current DOM/data)
+   ============================================================ */
+const CLONE_USAGE_BLOCK = /\/\* __WEB_NOTEPAD_USAGE_START__ \*\/[\s\S]*?\/\* __WEB_NOTEPAD_USAGE_END__ \*\//;
+let cloneKitPromise = null;
+let clonePrevFocus = null;
+
+function embeddedUsageBlock(usage) {
+  const safe = JSON.stringify(usage)
+    .replace(/</g, '\\u003c')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+  return `/* __WEB_NOTEPAD_USAGE_START__ */\nconst EMBEDDED_USAGE = ${safe};\n/* __WEB_NOTEPAD_USAGE_END__ */`;
+}
+
+async function buildCloneKit() {
+  const sourcePromise = typeof window.__WEB_NOTEPAD_CLONE_SOURCE__ === 'string'
+    ? Promise.resolve(window.__WEB_NOTEPAD_CLONE_SOURCE__)
+    : (async () => {
+        const sourceUrl = new URL(window.location.href);
+        sourceUrl.hash = '';
+        sourceUrl.search = '';
+        const response = await fetch(sourceUrl.href, { cache: 'no-store' });
+        if (!response.ok) throw new Error('source_fetch_failed');
+        return response.text();
+      })();
+  const [sourceText, usage] = await Promise.all([sourcePromise, loadDefaultUsage()]);
+  const source = sourceText.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
+  if (!/^<!doctype html>/i.test(source.trimStart()) || !CLONE_USAGE_BLOCK.test(source) || !source.includes('id="webClone"')) {
+    throw new Error('source_invalid');
+  }
+  const html = source.replace(CLONE_USAGE_BLOCK, embeddedUsageBlock(usage)).trimEnd();
+  const text = [
+    CLONE_PROMPT_START,
+    CLONE_PROMPT,
+    CLONE_PROMPT_END,
+    '',
+    CLONE_CODE_START,
+    html,
+    CLONE_CODE_END,
+    '',
+  ].join('\n');
+  return { html, text };
+}
+
+function getCloneKit() {
+  if (!cloneKitPromise) {
+    cloneKitPromise = buildCloneKit().catch((error) => {
+      cloneKitPromise = null;
+      throw error;
+    });
+  }
+  return cloneKitPromise;
+}
+
+function setCloneStatus(message, state = '') {
+  const status = $('cloneStatus');
+  status.textContent = message;
+  status.dataset.state = state;
+}
+
+function closeClone() {
+  const layer = $('cloneLayer');
+  layer.hidden = true;
+  layer.onmousedown = layer.onkeydown = null;
+  if (clonePrevFocus && clonePrevFocus.focus) clonePrevFocus.focus({ preventScroll: true });
+  clonePrevFocus = null;
+}
+
+async function openClone() {
+  const layer = $('cloneLayer');
+  clonePrevFocus = document.activeElement;
+  layer.hidden = false;
+  hideMenu();
+  $('cloneCopy').disabled = true;
+  $('cloneDownload').disabled = true;
+  setCloneStatus('복제 자료를 준비하고 있어요…');
+  layer.onmousedown = (e) => { if (e.target === layer) closeClone(); };
+  layer.onkeydown = (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeClone(); return; }
+    if (e.key !== 'Tab') return;
+    const focusable = [$('cloneClose'), $('cloneCopy'), $('cloneDownload'), $('cloneChatGPT')].filter(el => !el.disabled);
+    const i = focusable.indexOf(document.activeElement);
+    e.preventDefault();
+    focusable[(i + (e.shiftKey ? -1 : 1) + focusable.length) % focusable.length].focus();
+  };
+  $('cloneClose').focus();
+  try {
+    await getCloneKit();
+    $('cloneCopy').disabled = false;
+    $('cloneDownload').disabled = false;
+    setCloneStatus('개인 메모를 제외한 앱 소스와 제작 요청문이 준비됐어요.');
+  } catch {
+    setCloneStatus('복제 자료를 불러오지 못했어요. 페이지를 새로고침한 뒤 다시 시도해 주세요.', 'error');
+  }
+}
+
+async function copyCloneKit() {
+  try {
+    setCloneStatus('클립보드에 복사하고 있어요…');
+    const { text } = await getCloneKit();
+    let ok = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        ok = true;
+      }
+    } catch { ok = false; }
+    if (!ok) ok = legacyCopy(text, false);
+    setCloneStatus(ok ? '코드와 제작 요청문을 복사했어요. ChatGPT에 붙여 넣으세요.' : `복사하지 못했어요. 복제 파일을 다운로드하거나 ${MOD}C를 사용해 주세요.`, ok ? '' : 'error');
+  } catch {
+    setCloneStatus('복제 자료를 불러오지 못했어요. 페이지를 새로고침한 뒤 다시 시도해 주세요.', 'error');
+  }
+}
+
+async function downloadCloneKit() {
+  try {
+    const { text } = await getCloneKit();
+    const ok = await saveOut('web-notepad-clone-kit.txt', text, '복제 파일을 다운로드했어요');
+    if (ok) setCloneStatus('UTF-8 복제 파일을 다운로드했어요. ChatGPT 대화에 첨부할 수 있어요.');
+  } catch {
+    setCloneStatus('복제 파일을 만들지 못했어요. 페이지를 새로고침한 뒤 다시 시도해 주세요.', 'error');
+  }
+}
+
 async function saveFile(kind) {
   const data = kind === 'md' ? cur.raw : stripMd(cur.raw).out;
   if (!data) { toast('저장할 내용이 없어요'); return; }
@@ -1946,12 +2154,16 @@ seg.addEventListener('keydown', (e) => {
 });
 $('copyAll').addEventListener('click', copyAll);
 $('newTab').addEventListener('click', newNote);
+$('webClone').addEventListener('click', openClone);
+$('cloneClose').addEventListener('click', closeClone);
+$('cloneCopy').addEventListener('click', copyCloneKit);
+$('cloneDownload').addEventListener('click', downloadCloneKit);
 
 /* ============================================================
    Global shortcuts
    ============================================================ */
 document.addEventListener('keydown', (e) => {
-  if (!$('dlgLayer').hidden || !$('aboutLayer').hidden) return;
+  if (!$('dlgLayer').hidden || !$('aboutLayer').hidden || !$('cloneLayer').hidden) return;
   const mod = isMac ? e.metaKey : e.ctrlKey;
   const t = e.target;
   const inEditor = t === ta || t === document.body || t === rendered || (t && t.closest && t.closest('.bar, .top, .status'));

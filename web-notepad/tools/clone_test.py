@@ -1,60 +1,73 @@
-import asyncio, re, hashlib
+import asyncio, re
 from playwright.async_api import async_playwright
-def ok(c, n, d=''): print(('✅ ' if c else '❌ ') + n + (f'  ({d})' if d else ''))
+
+def ok(c, n, d=''):
+    print(('✅ ' if c else '❌ ') + n + (f'  ({d})' if d else ''))
+
 CLEAN = open('/mnt/user-data/outputs/notepad.html', encoding='utf-8').read()
+CODE_START = '===== 실행 가능한 전체 HTML 시작 ====='
+CODE_END = '===== 실행 가능한 전체 HTML 끝 ====='
+
+def app_html(bundle):
+    return bundle.split(CODE_START, 1)[1].split(CODE_END, 1)[0].strip('\n')
+
 async def route(r):
     u = r.request.url
-    if 'marked' in u: await r.fulfill(path='/tmp/package/marked.min.js', content_type='application/javascript')
-    elif 'dompurify' in u: await r.fulfill(path='/tmp/dp/package/dist/purify.min.js', content_type='application/javascript')
-    else: await r.abort()
+    if 'marked' in u:
+        await r.fulfill(path='/tmp/package/marked.min.js', content_type='application/javascript')
+    elif 'dompurify' in u:
+        await r.fulfill(path='/tmp/dp/package/dist/purify.min.js', content_type='application/javascript')
+    else:
+        await r.abort()
+
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(executable_path='/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
         print('── 배포용 파일 자체 점검')
-        for w in ['앱 복제', 'getApp', 'cloneLayer', 'APP_SOURCE', 'data-memo', '복제하기', '받는 파일에는 앱만']:
-            ok(w not in CLEAN, f'배포용 파일에 "{w}" 없음')
+        for word in ['id="webClone"', 'id="cloneLayer"', 'buildCloneKit', 'https://chatgpt.com']:
+            ok(word in CLEAN, f'배포용 파일에 {word} 포함')
+        ok('localStorage.getItem(LOCAL_NOTES_KEY)' not in CLEAN[CLEAN.index('async function buildCloneKit'):CLEAN.index('function getCloneKit')], '복제 생성기가 개인 메모를 읽지 않음')
+
         print('── 체험용 앱')
         ctx = await b.new_context(viewport={'width': 1000, 'height': 700})
         await ctx.add_init_script(path='/home/claude/menu/mock.js')
         await ctx.route('**/*', lambda r: route(r) if r.request.url.startswith('https') else r.continue_())
         A = await ctx.new_page(); errs = []; A.on('pageerror', lambda e: errs.append(str(e)))
         await A.goto('http://localhost:8765/notepad-demo.html'); await A.wait_for_timeout(1200)
-        ok(await A.is_visible('#getApp'), '앱 복제 버튼 보임')
-        await A.click('#getApp'); await A.wait_for_timeout(200)
-        txt = await A.inner_text('#cloneLayer')
-        ok(await A.is_visible('#cloneLayer') and '받는 파일에는 앱만' not in txt, '복제 창 열림 + 삭제한 문구 없음')
-        await A.click('#clonePromptCopy'); await A.wait_for_timeout(150)
-        ok('안내 문구' in await A.inner_text('#toast'), '문구 복사', await A.inner_text('#toast'))
-        await A.click('#cloneGet'); await A.wait_for_timeout(300)
+        ok(await A.is_visible('#webClone'), '웹 복제 버튼 보임')
+        await A.click('#webClone'); await A.wait_for_function("!document.querySelector('#cloneDownload').disabled")
+        text = await A.inner_text('#cloneLayer')
+        ok('내가 작성한 메모는 포함되지 않아요' in text and all(step in text for step in ['복사', 'ChatGPT에 붙여넣기', '원하는 이름과 스타일 전달']), '복제 안내 창의 개인정보 안내와 순서')
+        ok(await A.get_attribute('#cloneChatGPT', 'href') == 'https://chatgpt.com', 'ChatGPT 열기 주소')
+        await A.click('#cloneDownload'); await A.wait_for_timeout(300)
         d = (await A.evaluate('window.__downloads'))[-1]
-        ok(d['filename'] == '메모장-웹앱.html' and await A.is_hidden('#cloneLayer'), '파일 받기 → 창 닫힘', d['filename'])
-        same = d['data'] == CLEAN
-        ok(same, '받은 파일이 배포용 원본과 한 바이트도 다르지 않음', f"{hashlib.md5(d['data'].encode()).hexdigest()[:8]} vs {hashlib.md5(CLEAN.encode()).hexdigest()[:8]}")
-        await A.click('.menu-btn:text-is("파일")'); await A.wait_for_timeout(100)
-        items = await A.eval_on_selector_all('.menu-pop:not([hidden]) .mi', 'els => els.map(e => e.textContent)')
-        ok(any('복제하기' in t for t in items), '파일 메뉴에도 복제 항목', [t for t in items if '복제' in t])
-        await A.click('.menu-pop:not([hidden]) .mi:has-text("복제하기")'); await A.wait_for_timeout(200)
-        ok(await A.is_visible('#cloneLayer'), '메뉴에서도 복제 창 열림'); await A.keyboard.press('Escape')
+        ok(d['filename'] == 'web-notepad-clone-kit.txt', 'UTF-8 복제 파일 받기', d['filename'])
+        bundle = d['data']
+        ok(bundle.count(CODE_START) == 1 and bundle.count(CODE_END) == 1, '코드 경계가 각각 한 번만 포함')
+        ok('먼저 앱 이름·사용자 표시 이름·대표 색상을 한 번에 질문해 줘' in bundle, '제작용 프롬프트 포함')
+        html = app_html(bundle)
+        ok('demo-home' not in html and '__DEMO_PERIOD_MS' not in html and 'demoNote' not in html, '복제 HTML에 체험판 초기화 코드 없음')
+        ok('const EMBEDDED_USAGE = "# 웹 메모장 사용 가이드' in html and 'id="webClone"' in html, '복제 HTML에 기본 가이드와 재복제 기능 포함')
         print('   페이지 오류:', errs or '없음')
-        open('/tmp/host/copy_clean.html', 'w', encoding='utf-8').write(d['data'])
-        print('── 복제한 앱 (받은 파일)')
-        c2 = await b.new_context(accept_downloads=True); await c2.add_init_script(path='/home/claude/menu/mock.js')
+
+        open('/tmp/host/copy_clean.html', 'w', encoding='utf-8').write(html)
+        print('── 복제한 앱')
+        c2 = await b.new_context(viewport={'width': 1000, 'height': 700})
+        await c2.add_init_script(path='/home/claude/menu/mock.js')
         await c2.route('**/*', lambda r: route(r) if r.request.url.startswith('https') else r.continue_())
         C = await c2.new_page(); errs2 = []; C.on('pageerror', lambda e: errs2.append(str(e)))
-        await C.goto('file:///tmp/host/copy_clean.html'); await C.wait_for_timeout(700)
-        ok(await C.query_selector('#getApp') is None and await C.query_selector('#cloneLayer') is None, '복제한 앱에는 앱 복제 버튼이 없음')
-        await C.click('.menu-btn:text-is("파일")'); await C.wait_for_timeout(100)
-        items = await C.eval_on_selector_all('.menu-pop:not([hidden]) .mi', 'els => els.map(e => e.textContent)')
-        ok(not any('복제' in t for t in items), '파일 메뉴에도 복제 항목 없음', f'{len(items)}개 항목')
-        await C.keyboard.press('Escape')
-        await C.click('.menu-btn:text-is("도움말")'); await C.click('text=메모장 정보'); await C.wait_for_timeout(200)
-        ok('JOON' in await C.inner_text('#aboutWho') and await C.query_selector('#aboutGet') is None, '메모장 정보 창은 그대로, 복제 버튼만 빠짐')
-        await C.keyboard.press('Escape')
-        await C.click('#ta'); await C.keyboard.insert_text('**복제한 앱**에서 쓴 글'); await C.wait_for_timeout(200)
-        ok(await C.eval_on_selector('#ta', 'e => e.value') == '복제한 앱에서 쓴 글', '복제한 앱의 기본 기능 정상')
+        await C.goto('http://localhost:8765/copy_clean.html'); await C.wait_for_timeout(700)
+        ok(await C.is_visible('#webClone'), '복제한 앱에도 웹 복제 버튼 유지')
+        await C.click('#ta'); await C.keyboard.insert_text('**복제한 앱**에서 쓴 개인 글'); await C.wait_for_timeout(700)
         await C.click('.menu-btn:text-is("파일")'); await C.click('.menu-pop:not([hidden]) .mi:has-text("마크다운 원본으로 저장")'); await C.wait_for_timeout(300)
-        f = (await C.evaluate('window.__downloads'))[-1]
-        ok(f['data'] == '**복제한 앱**에서 쓴 글' and re.fullmatch(r'\d{6}_\d{4}_메모\.md', f['filename']), '복제한 앱에서 메모 저장도 정상', f['filename'])
+        memo = (await C.evaluate('window.__downloads'))[-1]
+        ok(memo['data'] == '**복제한 앱**에서 쓴 개인 글' and re.fullmatch(r'\d{6}_\d{4}_메모\.md', memo['filename']), '복제 앱의 메모 저장 정상', memo['filename'])
+        await C.click('#webClone'); await C.wait_for_function("!document.querySelector('#cloneDownload').disabled")
+        await C.click('#cloneDownload'); await C.wait_for_timeout(300)
+        again = (await C.evaluate('window.__downloads'))[-1]
+        ok(again['filename'] == 'web-notepad-clone-kit.txt' and 'id="webClone"' in again['data'], '복제 앱에서 재복제 가능')
+        ok('복제한 앱</strong>에서 쓴 개인 글' not in again['data'] and '**복제한 앱**에서 쓴 개인 글' not in again['data'], '개인 메모가 재복제 자료에 없음')
         print('   페이지 오류:', errs2 or '없음')
         await b.close()
+
 asyncio.run(main())
