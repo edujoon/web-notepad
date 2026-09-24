@@ -32,6 +32,7 @@
 <meta name="author" content="JOON <eduedujoon@gmail.com>">
 <meta name="copyright" content="(c) 2026 JOON, MIT License">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="마크다운 서식을 정리하고 브라우저에 안전하게 저장하는 웹 메모장">
 <title>메모장</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1052,12 +1053,19 @@ function updateSync() {
   else if (all.some(s => s.error === 'quota')) { text = '저장 공간이 가득 참'; state = 'error'; }
   else if (all.some(s => s.error === 'retry')) { text = '연결을 다시 시도하는 중'; state = 'error'; }
   else if (all.some(s => (s.dirty || s.inFlight) && !s.deleted)) { text = '저장 중…'; state = 'saving'; }
-  else if (store && store.kind === 'local') { text = '이 기기에만 저장돼요'; state = 'local'; }
+  else if (store && store.kind === 'local') { text = '브라우저에만 저장 · 데이터 삭제 시 사라짐'; state = 'local'; }
   else if (!gotSnap) { text = '연결 대기 중'; state = 'wait'; }
   else if (Date.now() < remoteFlashUntil) { text = '다른 기기에서 받아왔어요'; state = 'ok'; }
   else { text = '모든 기기와 동기화됨'; state = 'ok'; }
   el.dataset.state = state;
   label.textContent = text;
+  if (store && store.kind === 'local') {
+    el.title = '메모는 이 브라우저에만 저장되며 다른 사용자와 공유되지 않아요. 브라우저 데이터를 지우면 메모도 사라져요.';
+    el.setAttribute('aria-label', el.title);
+  } else {
+    el.removeAttribute('title');
+    el.removeAttribute('aria-label');
+  }
 }
 
 /* ============================================================
@@ -1436,7 +1444,8 @@ async function deleteNote(id) {
   const n = notes.get(id); if (!n) return;
   const body = id === cur.id ? cur.raw : n.body;
   if (body.trim()) {
-    const ok = await dialog({ title: '메모를 삭제할까요?', message: `‘${displayName(n)}’ 메모가 연결된 모든 기기에서 사라져요. 되돌릴 수 없어요.`, confirm: '삭제', danger: true });
+    const scope = store.kind === 'local' ? '이 브라우저에서' : '연결된 모든 기기에서';
+    const ok = await dialog({ title: '메모를 삭제할까요?', message: `‘${displayName(n)}’ 메모가 ${scope} 사라져요. 되돌릴 수 없어요.`, confirm: '삭제', danger: true });
     if (!ok) return;
   }
   const s = st(id);
@@ -2032,7 +2041,7 @@ async function start() {
   let db = null;
   if (hasClaude) { try { db = await window.claude.use('db'); } catch { db = null; } }
   store = db ? makeDbStore(db) : makeLocalStore();
-  if (!db) toast('실시간 동기화를 쓸 수 없어서 이 기기에만 저장해요');
+  if (!db) toast('메모는 이 브라우저에만 저장되며 다른 사용자와 공유되지 않아요');
   subscribe();
   setTimeout(() => { if (!ready) becomeReady(); }, 8000);
 }
@@ -2044,7 +2053,7 @@ function subscribe() {
       if (code === 'revoked') { setReadOnly(true); return; }
       if (!gotSnap && store.kind === 'db') {
         store = makeLocalStore();
-        toast('실시간 동기화를 시작하지 못해서 이 기기에만 저장해요');
+        toast('메모는 이 브라우저에만 저장되며 다른 사용자와 공유되지 않아요');
         subscribe();
         return;
       }
