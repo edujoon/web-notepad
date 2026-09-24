@@ -4,6 +4,10 @@
     {
       "source": "/",
       "destination": "/web-notepad/notepad.html"
+    },
+    {
+      "source": "/USAGE.md",
+      "destination": "/web-notepad/USAGE.md"
     }
   ]
 }

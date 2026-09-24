@@ -1,21 +1,24 @@
 import json, re, hashlib, time
-clean = open('/mnt/user-data/outputs/notepad.html', encoding='utf-8').read()
-readme = open('/mnt/user-data/outputs/README.md', encoding='utf-8').read().rstrip('\n')
-version = hashlib.md5(readme.encode()).hexdigest()[:10]
+from pathlib import Path
+
+root = Path(__file__).resolve().parents[1]
+clean = (root / 'notepad.html').read_text(encoding='utf-8')
+usage = (root / 'USAGE.md').read_text(encoding='utf-8').rstrip('\n')
+version = hashlib.md5(usage.encode()).hexdigest()[:10]
 build = int(time.time() * 1000)   # 최신 판 구분용 (오래된 창이 덮어쓰지 못하게)
 def js_str(t):
     return json.dumps(t, ensure_ascii=False).replace('</script>', '<\\/script>')
 demo = '''
 <script>
 /* 체험용 데모 전용 코드 — 배포용 파일(메모장-웹앱.html)에는 들어가지 않아요.
-   1) 1분마다 메모를 처음 상태(README 한 장)로 되돌리기
+   1) 1분마다 메모를 처음 상태(USAGE 안내 메모 한 장)로 되돌리기
    2) 앱 복제 버튼과 안내 창 (배포용 파일 원본을 그대로 품고 있다가 건네줘요) */
 (() => {
   'use strict';
   const PERIOD = window.__DEMO_PERIOD_MS || 60 * 1000;
   const HOME = 'demo-home';
   const HOLDER = 'demo-' + Math.random().toString(36).slice(2, 10);
-  const README = %README%;
+  const USAGE = %USAGE%;
   const VERSION = %VER%;  /* 안내문이 바뀌면 다음 주기를 기다리지 않고 바로 되돌려요 */
   const BUILD = %BUILD%;  /* 이 창이 몇 번째 판인지. 더 새 판이 돌고 있으면 이 창은 손을 떼요 */
   const APP_FILE = %APP%;
@@ -47,7 +50,7 @@ demo = '''
   }
   async function reset(now) {
     const snap = await db.collection('notes').get();
-    await db.doc('notes/' + HOME).set({ name: '', body: README, createdAt: 0, updatedAt: now, by: 'demo-reset' });
+    await db.doc('notes/' + HOME).set({ name: '웹 메모장 사용 가이드', body: USAGE, createdAt: 0, updatedAt: now, by: 'demo-reset' });
     for (const d of snap.docs) if (d.id !== HOME) { try { await db.doc('notes/' + d.id).delete(); } catch {} }
   }
   async function run() {
@@ -64,7 +67,7 @@ demo = '''
       if (bld > BUILD) { stepAside(); return; }
       if (bld === BUILD && seen && Date.now() - seen < PERIOD - 500) { last = seen; lastBuild = bld; schedule(seen + PERIOD - Date.now()); return; }
       await reset(Date.now());
-      await db.doc('meta/demo').set({ lastReset: Date.now(), build: BUILD, readmeVersion: VERSION, by: HOLDER });
+      await db.doc('meta/demo').set({ lastReset: Date.now(), build: BUILD, usageVersion: VERSION, by: HOLDER });
       setTimeout(() => { if (db) reset(Date.now()).catch(() => {}); }, 5000);
     } catch { schedule(30000); }
   }
@@ -170,7 +173,7 @@ demo = '''
 
   /* 안내문 안의 "바로가기" 링크가 해당 제목으로 이동하게 (체험용에서만) */
   function anchors() {
-    const slug = (t) => t.trim().toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, '').replace(/\s+/g, '-');
+    const slug = (t) => t.trim().toLowerCase().replace(/[^\\p{L}\\p{N}\\s-]/gu, '').replace(/\\s+/g, '-');
     document.addEventListener('click', (e) => {
       const a = e.target.closest && e.target.closest('#md a[href^="#"]');
       if (!a) return;
@@ -194,7 +197,7 @@ demo = '''
     db.doc('meta/demo').onSnapshot((s) => {
       const d = s.exists ? (s.data() || {}) : {};
       last = Number(d.lastReset) || 0;
-      lastVer = d.readmeVersion || null;
+      lastVer = d.usageVersion || d.readmeVersion || null;
       lastBuild = Number(d.build) || 0;
       if (lastBuild > BUILD) { stepAside(); return; }
       schedule(lastBuild !== BUILD ? 300 : last ? last + PERIOD - Date.now() : 1000);
@@ -202,8 +205,9 @@ demo = '''
   })();
 })();
 </script>
-'''.replace('%README%', js_str(readme)).replace('%VER%', js_str(version)).replace('%BUILD%', str(build)).replace('%APP%', js_str(clean))
+'''.replace('%USAGE%', js_str(usage)).replace('%VER%', js_str(version)).replace('%BUILD%', str(build)).replace('%APP%', js_str(clean))
 assert clean.count('</body>') == 1
-open('/mnt/user-data/outputs/notepad-demo.html', 'w', encoding='utf-8').write(clean.replace('</body>', demo + '</body>'))
+output = root / 'demo' / 'notepad-demo.html'
+output.write_text(clean.replace('</body>', demo + '</body>'), encoding='utf-8')
 print('안내문 판 번호:', version)
-print('체험용 파일 생성:', len(clean.replace('</body>', demo + '</body>')), '바이트')
+print('체험용 파일 생성:', output, len(clean.replace('</body>', demo + '</body>')), '바이트')

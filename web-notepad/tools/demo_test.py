@@ -20,7 +20,7 @@ async def main():
         val = lambda pg: pg.eval_on_selector('#ta', 'e => e.value')
         tabs = lambda pg: pg.eval_on_selector_all('#tabs .tab-name', 'els => els.map(e => e.textContent)')
         v = await val(A)
-        ok(len(await tabs(A)) == 1 and v.startswith('🗒️ 메모장') and '개발 목적' in v, '처음 상태: README 한 장', f'탭 {await tabs(A)}, {len(v)}자')
+        ok(len(await tabs(A)) == 1 and v.startswith('웹 메모장 사용 가이드') and '세 가지 보기' in v, '처음 상태: USAGE 안내 메모 한 장', f'탭 {await tabs(A)}, {len(v)}자')
         ok(await A.is_visible('#demoNote'), '체험용 안내 표시', await A.inner_text('#demoNote') if await A.is_visible('#demoNote') else '')
         # second window + edits + extra tabs
         B = await ctx.new_page(); await B.goto('http://localhost:8765/notepad-demo.html'); await B.wait_for_timeout(600)
@@ -32,12 +32,12 @@ async def main():
         await A.wait_for_timeout(8000)
         ta, tb = await tabs(A), await tabs(B); va, vb = await val(A), await val(B)
         ok(len(ta) == 1 and len(tb) == 1, '10분 주기 초기화: 창이 여러 개여도 메모 한 장만 남음', f'A {ta} / B {tb}')
-        ok(va == vb and va.startswith('🗒️ 메모장') and '체험자가 쓴 글' not in va and '두 번째' not in va, '내용도 README 처음 상태로 (쓴 글은 저장되지 않음)', f'{len(va)}자')
+        ok(va == vb and va.startswith('웹 메모장 사용 가이드') and '체험자가 쓴 글' not in va and '두 번째' not in va, '내용도 USAGE 처음 상태로 (쓴 글은 저장되지 않음)', f'{len(va)}자')
         # the downloaded app must not contain the demo code
         await A.click('#getApp'); await A.wait_for_timeout(200); await A.click('#cloneGet'); await A.wait_for_timeout(300)
         html = (await A.evaluate('window.__downloads'))[-1]['data']
         ok('demo-home' not in html and 'DEMO_PERIOD' not in html and '체험용' not in html and 'demoNote' not in html, '받은 파일에 체험용 코드가 없음')
-        ok('개발 목적' not in html and '10분마다' not in html, '받은 파일에 README 내용도 없음')
+        ok('마크다운이 섞인 글을 세 가지 방식으로' not in html and '1분마다' not in html, '받은 파일에 USAGE 안내 본문도 없음')
         ok(blocks(html) == blocks(CLEAN), '받은 파일 = 배포용 원본 파일과 동일', f'{len(blocks(html))}개 블록')
         print('   페이지 오류:', errs or '없음')
         # a downloaded copy keeps its notes (no reset)

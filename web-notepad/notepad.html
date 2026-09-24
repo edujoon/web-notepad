@@ -839,6 +839,10 @@ const LS = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
 };
+const LOCAL_NOTES_KEY = 'memo.localNotes';
+const USAGE_SEEDED_KEY = 'memo.usageGuideSeeded';
+const USAGE_NOTE_ID = 'usage-guide';
+const USAGE_URL = '/web-notepad/USAGE.md';
 const enc = new TextEncoder();
 const LIMIT = 250000;
 const fmt = (n) => n.toLocaleString('ko-KR');
@@ -898,18 +902,45 @@ function makeDbStore(db) {
   };
 }
 function makeLocalStore() {
-  const KEY = 'memo.localNotes';
   let listener = null;
-  const read = () => LS.get(KEY, {}) || {};
+  const read = () => LS.get(LOCAL_NOTES_KEY, {}) || {};
   const emitAll = () => { if (listener) listener(Object.entries(read()), { fromCache: false }); };
-  window.addEventListener('storage', e => { if (e.key === KEY) emitAll(); });
+  window.addEventListener('storage', e => { if (e.key === LOCAL_NOTES_KEY) emitAll(); });
   return {
     kind: 'local',
     subscribe(onDocs) { listener = onDocs; setTimeout(emitAll, 0); return () => { listener = null; }; },
     newId() { return 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); },
-    async save(id, data) { const all = read(); all[id] = data; if (!LS.set(KEY, all)) throw { code: 'quota_exceeded' }; emitAll(); },
-    async remove(id) { const all = read(); delete all[id]; LS.set(KEY, all); emitAll(); },
+    async save(id, data) { const all = read(); all[id] = data; if (!LS.set(LOCAL_NOTES_KEY, all)) throw { code: 'quota_exceeded' }; emitAll(); },
+    async remove(id) { const all = read(); delete all[id]; LS.set(LOCAL_NOTES_KEY, all); emitAll(); },
   };
+}
+
+async function seedUsageGuide() {
+  if (!store || store.kind !== 'local') return;
+  let existing = null;
+  try { existing = localStorage.getItem(LOCAL_NOTES_KEY); } catch { return; }
+  if (LS.get(USAGE_SEEDED_KEY, false) || existing !== null) {
+    if (existing !== null) LS.set(USAGE_SEEDED_KEY, true);
+    return;
+  }
+  try {
+    const response = await fetch(USAGE_URL, { cache: 'no-cache' });
+    if (!response.ok) return;
+    const body = (await response.text()).replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').trimEnd();
+    if (!body.trim()) return;
+    if (localStorage.getItem(LOCAL_NOTES_KEY) !== null || LS.get(USAGE_SEEDED_KEY, false)) return;
+    const now = Date.now();
+    const initial = {
+      [USAGE_NOTE_ID]: {
+        name: '웹 메모장 사용 가이드',
+        body,
+        createdAt: now,
+        updatedAt: now,
+        by: tabId,
+      },
+    };
+    if (LS.set(LOCAL_NOTES_KEY, initial)) LS.set(USAGE_SEEDED_KEY, true);
+  } catch {}
 }
 
 /* ============================================================
@@ -2041,7 +2072,10 @@ async function start() {
   let db = null;
   if (hasClaude) { try { db = await window.claude.use('db'); } catch { db = null; } }
   store = db ? makeDbStore(db) : makeLocalStore();
-  if (!db) toast('메모는 이 브라우저에만 저장되며 다른 사용자와 공유되지 않아요');
+  if (!db) {
+    await seedUsageGuide();
+    toast('메모는 이 브라우저에만 저장되며 다른 사용자와 공유되지 않아요');
+  }
   subscribe();
   setTimeout(() => { if (!ready) becomeReady(); }, 8000);
 }
@@ -2054,14 +2088,14 @@ function subscribe() {
       if (!gotSnap && store.kind === 'db') {
         store = makeLocalStore();
         toast('메모는 이 브라우저에만 저장되며 다른 사용자와 공유되지 않아요');
-        subscribe();
+        seedUsageGuide().finally(subscribe);
         return;
       }
       if (resubTries < 5) { resubTries++; setTimeout(subscribe, 2000 * resubTries); }
       updateSync();
     });
   } catch {
-    if (store.kind === 'db') { store = makeLocalStore(); subscribe(); }
+    if (store.kind === 'db') { store = makeLocalStore(); seedUsageGuide().finally(subscribe); }
   }
 }
 start();

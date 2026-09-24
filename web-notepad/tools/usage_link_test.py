@@ -14,15 +14,15 @@ async def main():
         A = await ctx.new_page(); errs = []; A.on('pageerror', lambda e: errs.append(str(e)))
         await A.goto('http://localhost:8765/notepad-demo.html'); await A.wait_for_timeout(1300)
         await A.click('[data-mode=rendered]'); await A.wait_for_timeout(500)
-        a = await A.evaluate("""() => { const x = [...document.querySelectorAll('#md a')].find(e => e.href.includes('claude.ai/new')); return x ? { text: x.textContent, href: x.href, target: x.target } : null; }""")
-        q = urllib.parse.unquote(a['href'].split('?q=')[1]) if a else ''
-        ok(a and a['text'] == 'Claude 새 대화창' and a['target'] == '_blank' and q.startswith('첨부한 HTML'), '안내문 링크에 문구 담김', q[:30] + '…')
+        a = await A.evaluate("""() => { const x = [...document.querySelectorAll('#md a')].find(e => e.href.includes('github.com/edujoon/web-notepad')); return x ? { text: x.textContent, href: x.href, target: x.target } : null; }""")
+        ok(a and a['text'] == 'edujoon/web-notepad' and a['target'] == '_blank', 'USAGE 안내문의 프로젝트 링크', a['href'] if a else '없음')
         dlg = await A.evaluate("""() => { const b = document.getElementById('getApp'); b.click(); const x = document.getElementById('cloneNew'); const h = x.href; document.getElementById('cloneClose').click(); return h; }""")
-        ok(dlg == a['href'], '복제 안내 창 링크와 동일', '같음' if dlg == a['href'] else '다름')
+        q = urllib.parse.unquote(dlg.split('?q=')[1]) if '?q=' in dlg else ''
+        ok(q.startswith('첨부한 HTML'), '복제 안내 창에 요청 문구 포함', q[:30] + '…')
         await A.click('[data-mode=raw]'); await A.wait_for_timeout(200)
         raw = await A.eval_on_selector('#ta', 'e => e.value')
-        line = [l for l in raw.split('\n') if '새 대화창' in l][0]
-        ok('%' not in line and 'claude.ai/new?q=첨부한' in line, '마크다운 원본에서도 읽히는 형태', line[:52] + '…')
+        line = [l for l in raw.split('\n') if '프로젝트 저장소:' in l][0]
+        ok('https://github.com/edujoon/web-notepad' in line, '마크다운 원본에서도 읽히는 프로젝트 링크', line[:72] + '…')
         await A.click('[data-mode=plain]'); await A.wait_for_timeout(200)
         v = await A.eval_on_selector('#ta', 'e => e.value')
         ok('claude.ai' not in v, '서식 제거 보기에는 주소가 드러나지 않음')

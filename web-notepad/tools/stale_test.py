@@ -16,7 +16,7 @@ async def main():
         await ctx.add_init_script(script="""
           localStorage.setItem('__mockdb', JSON.stringify({
             'notes/demo-home': { name: '', body: '# 새 판이 쓴 안내문\\n\\n링크 포함', createdAt: 0, updatedAt: Date.now(), by: 'newer' },
-            'meta/demo': { lastReset: Date.now(), build: 9999999999999, readmeVersion: 'newer', by: 'newer' } }));""")
+          'meta/demo': { lastReset: Date.now(), build: 9999999999999, usageVersion: 'newer', by: 'newer' } }));""")
         await ctx.route('**/*', lambda r: route(r) if r.request.url.startswith('https') else r.continue_())
         A = await ctx.new_page(); errs = []; A.on('pageerror', lambda e: errs.append(str(e)))
         await A.goto('http://localhost:8765/notepad-demo.html'); await A.wait_for_timeout(9000)
@@ -32,12 +32,12 @@ async def main():
         await c2.add_init_script(script="""
           localStorage.setItem('__mockdb', JSON.stringify({
             'notes/demo-home': { name: '', body: '# 예전 판 안내문', createdAt: 0, updatedAt: Date.now(), by: 'older' },
-            'meta/demo': { lastReset: Date.now(), build: 1, readmeVersion: 'older', by: 'older' } }));""")
+            'meta/demo': { lastReset: Date.now(), build: 1, usageVersion: 'older', by: 'older' } }));""")
         await c2.route('**/*', lambda r: route(r) if r.request.url.startswith('https') else r.continue_())
         B = await c2.new_page(); errs2 = []; B.on('pageerror', lambda e: errs2.append(str(e)))
         await B.goto('http://localhost:8765/notepad-demo.html'); await B.wait_for_timeout(3000)
         v = await B.eval_on_selector('#ta', 'e => e.value')
-        ok('개발 목적' in v, '최신 창은 곧바로 새 안내문으로 되돌림', f'{len(v)}자')
+        ok('웹 메모장 사용 가이드' in v, '최신 창은 곧바로 새 안내문으로 되돌림', f'{len(v)}자')
         meta = await B.evaluate("() => JSON.parse(localStorage.getItem('__mockdb'))['meta/demo']")
         ok(meta['build'] > 1700000000000, '판 번호 기록', str(meta['build']))
         await B.wait_for_timeout(6000)
