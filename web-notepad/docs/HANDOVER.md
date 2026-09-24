@@ -22,14 +22,15 @@
 
 | 파일 | 크기 | 역할 |
 |---|---|---|
-| `notepad.html` | 약 100KB | **배포용 원본.** Vercel과 Claude에서 실행하는 앱 본체 |
-| `demo/notepad-demo.html` | 약 220KB | **Claude 게시용 체험판.** 배포용 원본 + 체험용 코드 |
+| `notepad.html` | 약 320KB | **Vercel 배포 파일.** 앱 본체 + 자체 포함 복제 템플릿 |
+| `demo/notepad-demo.html` | 약 330KB | **Claude 게시용 체험판.** 배포 파일 + 체험용 초기화 코드 |
 | `USAGE.md` | 약 5KB | 새 사용자의 첫 안내 메모 원본 |
 | 루트 `README.md` | 약 5KB | GitHub에서 보는 프로젝트 설명 |
-| `tools/` | - | 체험판 빌드 스크립트와 테스트 도구 |
+| `vendor/` | 약 90KB | 복제본에 포함되는 `marked`·`DOMPurify`와 라이선스 |
+| `tools/` | - | 배포 파일·체험판 빌드 스크립트와 테스트 도구 |
 | `LICENSE` | 1KB | MIT 라이선스 전문 |
 
-체험판이 배포용보다 큰 이유는, 앱 복제 때 체험판 초기화 코드를 제외한 배포용 원본을 건네기 위해 원본 전체를 문자열로 품고 있기 때문이에요. 배포용과 체험판 모두 같은 **앱 복제** UI를 사용합니다.
+`notepad.html`은 사람이 수정하는 앱 코드이면서 생성 결과이기도 해요. `tools/build_app.py`는 생성된 복제 소스 블록을 먼저 빈 표식으로 되돌린 뒤 최신 `USAGE.md`와 자체 포함 복제 템플릿을 다시 삽입하므로 반복 실행해도 파일이 계속 커지지 않습니다. 체험판은 이 배포 파일에 초기화 코드만 덧붙이며, 두 버전 모두 같은 **앱 복제** UI와 복제 템플릿을 사용합니다.
 
 **깃허브 저장소**: `https://github.com/edujoon/web-notepad`
 
@@ -37,12 +38,15 @@
 web-notepad/
 ├── USAGE.md               사용자 안내 겸 첫 화면 안내 메모 원본
 ├── LICENSE                MIT 라이선스
-├── notepad.html           배포용 원본
+├── notepad.html           Vercel 배포 파일과 앱 소스
+├── vendor/                복제본용 라이브러리·라이선스
 ├── demo/
-│   └── notepad-demo.html  게시용 체험판
+│   └── notepad-demo.html  게시용 체험판 생성 결과
 ├── docs/
 │   └── HANDOVER.md        이 문서
-└── tools/                 빌드 스크립트와 테스트 도구
+└── tools/
+    ├── build_app.py       안내문·자체 포함 복제 템플릿 삽입
+    └── build_demo.py      build_app 실행 후 체험판 생성
 ```
 
 저장소 루트 `README.md`와 이 폴더의 `USAGE.md`는 용도가 달라요. 루트 문서는 프로젝트 설명이고, `USAGE.md`는 앱 안의 사용자 안내예요. `USAGE.md`를 고친 뒤에는 체험판도 다시 만들어야 해요.
@@ -58,7 +62,7 @@ web-notepad/
 체험판 맨 끝의 `<script>` 한 덩어리에 들어 있어요. 배포용에는 없어요.
 
 - **1분마다 처음 상태로**: 메모가 안내문 한 장만 남고 나머지 탭은 저장 없이 사라져요. 여러 사람이 동시에 써도 한 창만 작업하도록 잠금을 써요.
-- **복제 원본 지정**: 공통 앱 복제 UI가 체험판 자체가 아니라 배포용 `notepad.html`과 `USAGE.md`를 사용하도록 원본을 지정해요.
+- **복제 템플릿 상속**: 배포 파일에 이미 들어 있는 자체 포함 템플릿을 사용하므로 체험판 주소나 원본 주소를 다시 가져오지 않아요.
 - **판 번호(BUILD)**: 더 새로운 판이 돌고 있으면 오래된 창은 초기화에서 손을 떼고 "새로고침해 주세요"라고 알려요. 이게 없으면 예전 창이 옛 안내문으로 계속 되돌려써요.
 - **안내문 안의 이동 링크 처리**: 배포용 앱은 제목에 이동 지점을 만들지 않아서, 체험판에서만 처리해요.
 
@@ -66,8 +70,8 @@ web-notepad/
 
 ## 4. 수정할 때 반드시 지킬 것
 
-1. **배포용을 고쳤으면 체험판을 다시 만들어야 해요.** `tools/build_demo.py`를 실행하면 `notepad.html`과 `USAGE.md`를 읽어 체험판을 새로 만들어요. 이 단계를 빠뜨리면 체험판의 기능과 앱 복제로 가져가는 원본이 옛 버전이 돼요.
-2. **안내문을 고칠 때도 다시 만들어야 해요.** `USAGE.md`를 고치고 빌드하면 판 번호가 자동으로 올라가, 열려 있는 창이 바로 새 안내문으로 바뀌어요.
+1. **배포용 코드나 안내문을 고치면 빌드해야 해요.** `tools/build_app.py`가 최신 앱 코드와 `USAGE.md`로 자체 포함 복제 템플릿을 다시 만들어요. 이 단계를 빠뜨리면 화면과 복제 자료가 달라져요.
+2. **체험판도 다시 만들어야 해요.** `tools/build_demo.py`는 먼저 `build_app.py`를 실행한 다음 체험판을 만들고 판 번호를 올려요.
 3. **게시한 뒤에는 열려 있는 창을 모두 새로고침하세요.** 휴대폰에 열어 둔 것도요. 새로고침 전의 창은 옛 코드로 동작해요.
 4. **체험판을 게시할 때 기능 두 가지를 꼭 켜야 해요.** 실시간 동기화용 `db`, 파일 저장용 `downloads`예요.
 5. **배포용 파일 맨 위의 제작자 표시와 라이선스 문구는 지우지 마세요.** MIT 라이선스의 조건이에요.
@@ -75,6 +79,7 @@ web-notepad/
 저장소 루트에서 빌드 명령을 실행하세요.
 
 ```
+python web-notepad/tools/build_app.py
 python web-notepad/tools/build_demo.py
 ```
 
@@ -85,13 +90,14 @@ python web-notepad/tools/build_demo.py
 - `stripMd(raw)` — 마크다운을 걷어 내면서, 걷어 낸 글자가 원본의 어느 위치에서 왔는지 지도를 함께 만들어요. 서식 제거 보기에서 편집이 가능한 핵심이에요.
 - `mapEdit`, `resolveEdit` — 서식 제거 보기에서 한 편집을 원본에 반영해요. 여러 방식을 시도해 보고 화면과 정확히 일치하는 결과를 골라요. 굵은 글자를 덮어써도 서식이 유지되는 이유예요.
 - `renderSource(raw)` — 서식 적용 보기용 전처리예요. `**'강조'**를`처럼 조사가 붙어 서식이 깨지는 한국어 문제를 여기서 해결해요.
-- `makeDbStore`, `makeLocalStore` — 저장소예요. 같은 모양(subscribe/newId/save/remove)이라 다른 저장소로 갈아 끼우기 쉬워요. 실시간 저장을 쓸 수 없으면 자동으로 브라우저 저장으로 내려가요.
+- `makeDbStore`, `makeLocalStore`, `makeMemoryStore` — 저장소예요. 실시간 저장을 쓸 수 없으면 브라우저 저장으로 내려가고, 미리보기에서 `localStorage`까지 차단되면 현재 세션 메모리로 내려가요. 메모리 모드는 영구 저장으로 표시하지 않아요.
 - `flush`, `markDirty`, `onDocs`, `applyRemote` — 저장과 동기화 처리예요.
 - `.tab-strip`, `renderTabs` — 탭과 새 메모 버튼을 같은 가로 스크롤 흐름에 두어, `+`가 항상 마지막 탭 바로 뒤에 오게 해요. 앱 복제 버튼은 바깥쪽 오른편에 남아요.
 - `<link rel="icon">` — 외부 파일 없이 복제본에도 따라가는 📋 SVG data URL 파비콘이에요.
 - `openFind`, `computeMatches`, `replaceAll` — 찾기와 바꾸기예요.
 - `saveOut`, `saveFile` — 파일로 저장이에요.
-- `loadDefaultUsage`, `buildCloneKit`, `openClone` — 기본 가이드를 단일 HTML에 넣고 제작 요청문과 함께 복사·다운로드하는 앱 복제 기능이에요. 현재 DOM이나 localStorage는 읽지 않아요.
+- `loadDefaultUsage`, `embeddedCloneSourceBlock`, `buildCloneKit`, `openClone` — 기본 가이드와 정적 복제 템플릿을 단일 HTML로 만들고 ChatGPT 미리보기 제작 요청문과 함께 복사·다운로드해요. 현재 DOM, 현재 주소의 HTML, localStorage는 읽지 않아요.
+- `tools/build_app.py` — 복제본에서 Google Fonts를 시스템 글꼴로 바꾸고, 고지를 보존한 `marked`와 `DOMPurify`를 인라인으로 넣고, 재복제에 쓸 정적 템플릿을 배포 파일에 삽입해요.
 
 ## 6. 테스트
 
@@ -119,6 +125,7 @@ python web-notepad/tools/build_demo.py
 - **표 구조는 서식 제거 보기에서 바꾸기 어려워요.** 칸이나 줄을 바꿀 때는 마크다운 원본에서 고쳐야 해요.
 - **서식 적용 화면은 읽기 전용이에요.** 편집을 넣으려면 화면을 다시 마크다운으로 되돌리는 과정이 필요한데, 원본 서식이 마음대로 바뀌고 한글 입력이 불안정해져요.
 - **탭 아이콘은 넣을 수 없어요.** 게시된 앱은 claude.ai 페이지 안에서 동작해서, 탭 아이콘은 바깥 페이지가 정해요. 파일을 브라우저로 직접 열 때는 가능해요.
+- **ChatGPT 미리보기 기능과 권한은 환경에 따라 달라요.** Canvas 또는 HTML·React 미리보기를 제공하지 않거나 저장소·클립보드·다운로드를 제한할 수 있어요. 프롬프트는 미리보기를 최우선으로 요청하지만 실제 ChatGPT 결과는 별도로 확인해야 해요.
 
 ## 8. 남은 아이디어
 

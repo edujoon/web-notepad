@@ -1,8 +1,10 @@
-import json, re, hashlib, time
+import json, re, hashlib, time, sys
 from pathlib import Path
+sys.dont_write_bytecode = True
+from build_app import build as build_app
 
 root = Path(__file__).resolve().parents[1]
-clean = (root / 'notepad.html').read_text(encoding='utf-8')
+clean = build_app()
 usage = (root / 'USAGE.md').read_text(encoding='utf-8').rstrip('\n')
 version = hashlib.md5(usage.encode()).hexdigest()[:10]
 build = int(time.time() * 1000)   # 최신 판 구분용 (오래된 창이 덮어쓰지 못하게)
@@ -12,7 +14,7 @@ demo = '''
 <script>
 /* 체험용 데모 전용 코드 — 배포용 파일에는 들어가지 않아요.
    1분마다 메모를 처음 상태(USAGE 안내 메모 한 장)로 되돌립니다.
-   앱 복제는 배포용 원본의 기능을 그대로 사용하고 원본 정적 소스를 건넵니다. */
+   앱 복제는 배포용 빌드에 포함된 자체 포함 정적 템플릿을 그대로 사용합니다. */
 (() => {
   'use strict';
   const PERIOD = window.__DEMO_PERIOD_MS || 60 * 1000;
@@ -21,8 +23,6 @@ demo = '''
   const USAGE = %USAGE%;
   const VERSION = %VER%;  /* 안내문이 바뀌면 다음 주기를 기다리지 않고 바로 되돌려요 */
   const BUILD = %BUILD%;  /* 이 창이 몇 번째 판인지. 더 새 판이 돌고 있으면 이 창은 손을 떼요 */
-  const APP_FILE = %APP%;
-  window.__WEB_NOTEPAD_CLONE_SOURCE__ = APP_FILE;
   window.__WEB_NOTEPAD_USAGE__ = USAGE;
   const $ = (id) => document.getElementById(id);
   let db = null, timer = 0, last = 0, lastVer = null, lastBuild = 0, stale = false;
@@ -99,7 +99,7 @@ demo = '''
   })();
 })();
 </script>
-'''.replace('%USAGE%', js_str(usage)).replace('%VER%', js_str(version)).replace('%BUILD%', str(build)).replace('%APP%', js_str(clean))
+'''.replace('%USAGE%', js_str(usage)).replace('%VER%', js_str(version)).replace('%BUILD%', str(build))
 assert clean.count('</body>') == 1
 output = root / 'demo' / 'notepad-demo.html'
 output.write_text(clean.replace('</body>', demo + '</body>'), encoding='utf-8')
