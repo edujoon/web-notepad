@@ -22,15 +22,15 @@
 
 | 파일 | 크기 | 역할 |
 |---|---|---|
-| `notepad.html` | 약 320KB | **Vercel 배포 파일.** 앱 본체 + 자체 포함 복제 템플릿 |
-| `demo/notepad-demo.html` | 약 330KB | **Claude 게시용 체험판.** 배포 파일 + 체험용 초기화 코드 |
-| `USAGE.md` | 약 5KB | 새 사용자의 첫 안내 메모 원본 |
-| 루트 `README.md` | 약 5KB | GitHub에서 보는 프로젝트 설명 |
+| `notepad.html` | 약 306KB | **Vercel 배포 파일.** 원본 앱 + 복제 기능을 뺀 자체 포함 복제 HTML |
+| `demo/notepad-demo.html` | 약 321KB | **Claude 게시용 체험판.** 배포 파일 + 체험용 초기화 코드 |
+| `USAGE.md` | 약 7KB | 새 사용자의 첫 안내 메모 원본 |
+| 루트 `README.md` | 약 9KB | GitHub에서 보는 프로젝트 설명 |
 | `vendor/` | 약 90KB | 복제본에 포함되는 `marked`·`DOMPurify`와 라이선스 |
 | `tools/` | - | 배포 파일·체험판 빌드 스크립트와 테스트 도구 |
 | `LICENSE` | 1KB | MIT 라이선스 전문 |
 
-`notepad.html`은 사람이 수정하는 앱 코드이면서 생성 결과이기도 해요. `tools/build_app.py`는 생성된 복제 소스 블록을 먼저 빈 표식으로 되돌린 뒤 최신 `USAGE.md`와 자체 포함 복제 템플릿을 다시 삽입하므로 반복 실행해도 파일이 계속 커지지 않습니다. 체험판은 이 배포 파일에 초기화 코드만 덧붙이며, 두 버전 모두 같은 **앱 복제** UI와 복제 템플릿을 사용합니다.
+`notepad.html`은 사람이 수정하는 원본 앱 코드이면서 생성 결과이기도 해요. `tools/build_app.py`는 생성된 복제 소스 블록을 먼저 빈 표식으로 되돌린 뒤 최신 `USAGE.md`를 넣고, 원본 전용 블록을 제거한 자체 포함 복제 HTML을 다시 삽입합니다. 복제 HTML에는 앱 복제 UI·Gemini 링크·생성 코드·내장 재복제 템플릿이 없으며, 체험판은 배포 파일에 초기화 코드만 덧붙여 원본의 **앱 복제** UI를 그대로 사용합니다.
 
 **깃허브 저장소**: `https://github.com/edujoon/web-notepad`
 
@@ -62,7 +62,7 @@ web-notepad/
 체험판 맨 끝의 `<script>` 한 덩어리에 들어 있어요. 배포용에는 없어요.
 
 - **1분마다 처음 상태로**: 메모가 안내문 한 장만 남고 나머지 탭은 저장 없이 사라져요. 여러 사람이 동시에 써도 한 창만 작업하도록 잠금을 써요.
-- **복제 템플릿 상속**: 배포 파일에 이미 들어 있는 자체 포함 템플릿을 사용하므로 체험판 주소나 원본 주소를 다시 가져오지 않아요.
+- **복제 HTML 상속**: 배포 파일에 이미 들어 있는 자체 포함 HTML을 사용하므로 체험판 주소나 원본 주소를 다시 가져오지 않아요. 생성된 복제본에는 다시 복제하는 기능이 없어요.
 - **판 번호(BUILD)**: 더 새로운 판이 돌고 있으면 오래된 창은 초기화에서 손을 떼고 "새로고침해 주세요"라고 알려요. 이게 없으면 예전 창이 옛 안내문으로 계속 되돌려써요.
 - **안내문 안의 이동 링크 처리**: 배포용 앱은 제목에 이동 지점을 만들지 않아서, 체험판에서만 처리해요.
 
@@ -96,10 +96,10 @@ python web-notepad/tools/build_demo.py
 - `<link rel="icon">` — 외부 파일 없이 복제본에도 따라가는 📋 SVG data URL 파비콘이에요.
 - `openFind`, `computeMatches`, `replaceAll` — 찾기와 바꾸기예요.
 - `saveOut`, `saveFile` — 파일로 저장이에요.
-- `loadDefaultUsage`, `embeddedCloneSourceBlock`, `buildCloneKit`, `openClone` — 기본 가이드와 정적 복제 템플릿을 단일 HTML로 만들고 Gemini Canvas 제작 요청문과 함께 다운로드·복사해요. 현재 DOM, 현재 주소의 HTML, localStorage는 읽지 않아요. **Gemini 열기**는 공식 앱 주소만 새 탭으로 열며 Canvas 선택이나 첨부를 자동화하지 않아요.
-- `tools/build_app.py` — 복제본에서 Google Fonts를 시스템 글꼴로 바꾸고, 고지를 보존한 `marked`와 `DOMPurify`를 인라인으로 넣고, 재복제에 쓸 정적 템플릿을 배포 파일에 삽입해요.
+- `loadDefaultUsage`, `buildCloneKit`, `openClone` — 미리 생성된 자체 포함 복제 HTML을 Gemini Canvas 제작 요청문과 함께 다운로드·복사해요. 현재 DOM, 현재 주소의 HTML, localStorage는 읽지 않아요. **Gemini 열기**는 공식 앱 주소만 새 탭으로 열며 Canvas 선택이나 첨부를 자동화하지 않아요.
+- `tools/build_app.py` — 복제본에서 원본 전용 앱 복제·작성자 소개 블록을 제거하고, 복제본용 사용 가이드를 넣어요. Google Fonts는 시스템 글꼴로 바꾸고, 고지를 보존한 `marked`와 `DOMPurify`를 한 번씩 인라인으로 넣습니다.
 
-복제본의 실행용 라이브러리와 그 안의 재복제용 정적 템플릿 사본은 오프라인 재복제를 위해 각각 필요해요. 생성기는 템플릿을 정규화한 뒤 한 번만 다시 삽입하므로 반복 빌드로 사본이 계속 늘어나지는 않아요.
+원본의 복제 기능은 `__WEB_NOTEPAD_ORIGINAL_*` 경계로 표시되어 있어요. 생성 스크립트가 이 블록을 실제로 삭제하므로 복제본에 숨겨진 버튼이나 죽은 이벤트 코드가 남지 않아요. 복제본 상단 주석은 `Copyright (c) 2026 JOON`과 MIT 본문만 유지하며 원본 제작자의 이메일·소개·최초 작성 날짜는 제외합니다.
 
 ## 6. 테스트
 
@@ -109,7 +109,7 @@ python web-notepad/tools/build_demo.py
 |---|---|---|
 | `menu_test.py` | 모든 메뉴 항목과 단축키 | 50개 |
 | `browser.py` | 세 가지 보기와 편집, 전체 복사 | 20개 |
-| `clone_test.py` | 앱 복제 자료의 프롬프트·전체 HTML·개인 메모 제외·재복제 | 전 항목 통과 |
+| `clone_test.py` | 원본 복제 기능·프롬프트·개인 메모 제외·복제본의 복제 코드 부재 | 전 항목 통과 |
 | `demo_test.py` | 체험판 초기화와 체험판 코드가 빠진 복제 HTML | 전 항목 통과 |
 | `stale_test.py` | 오래된 창이 덮어쓰지 않는지 | 5개 |
 | `fix_test.py` | 찾기·바꾸기 단축키, 파일 이름 | 16개 |

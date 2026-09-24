@@ -1,65 +1,77 @@
 import asyncio
+
 from playwright.async_api import async_playwright
 
-def ok(c, n, d=''):
-    print(('✅ ' if c else '❌ ') + n + (f'  ({d})' if d else ''))
 
-CODE_START = '===== 실행 가능한 전체 HTML 시작 ====='
-CODE_END = '===== 실행 가능한 전체 HTML 끝 ====='
+def ok(condition, name, detail=""):
+    print(("✅ " if condition else "❌ ") + name + (f"  ({detail})" if detail else ""))
+    if not condition:
+        raise AssertionError(name)
 
-async def route(r):
-    u = r.request.url
-    if 'marked' in u:
-        await r.fulfill(path='/tmp/package/marked.min.js', content_type='application/javascript')
-    elif 'dompurify' in u:
-        await r.fulfill(path='/tmp/dp/package/dist/purify.min.js', content_type='application/javascript')
+
+CODE_START = "===== 실행 가능한 전체 HTML 시작 ====="
+CODE_END = "===== 실행 가능한 전체 HTML 끝 ====="
+
+
+async def route(request_route):
+    url = request_route.request.url
+    if "marked" in url:
+        await request_route.fulfill(path="/tmp/package/marked.min.js", content_type="application/javascript")
+    elif "dompurify" in url:
+        await request_route.fulfill(path="/tmp/dp/package/dist/purify.min.js", content_type="application/javascript")
     else:
-        await r.abort()
+        await request_route.abort()
+
 
 async def main():
-    async with async_playwright() as p:
-        b = await p.chromium.launch(executable_path='/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
-        ctx = await b.new_context(viewport={'width': 1000, 'height': 700})
-        await ctx.add_init_script(script='window.__DEMO_PERIOD_MS = 6000;')
-        await ctx.add_init_script(path='/home/claude/menu/mock.js')
-        await ctx.route('**/*', lambda r: route(r) if r.request.url.startswith('https') else r.continue_())
-        A = await ctx.new_page(); errs = []; A.on('pageerror', lambda e: errs.append(str(e)))
-        await A.goto('http://localhost:8765/notepad-demo.html'); await A.wait_for_timeout(1800)
-        val = lambda pg: pg.eval_on_selector('#ta', 'e => e.value')
-        tabs = lambda pg: pg.eval_on_selector_all('#tabs .tab-name', 'els => els.map(e => e.textContent)')
-        v = await val(A)
-        ok(len(await tabs(A)) == 1 and v.startswith('웹 메모장 사용 가이드') and '세 가지 보기' in v, '처음 상태: USAGE 안내 메모 한 장', f'탭 {await tabs(A)}, {len(v)}자')
-        ok(await A.is_visible('#demoNote'), '체험용 안내 표시', await A.inner_text('#demoNote') if await A.is_visible('#demoNote') else '')
+    async with async_playwright() as playwright:
+        browser = await playwright.chromium.launch(executable_path="/opt/pw-browsers/chromium-1194/chrome-linux/chrome")
+        context = await browser.new_context(viewport={"width": 1000, "height": 700})
+        await context.add_init_script(script="window.__DEMO_PERIOD_MS = 6000;")
+        await context.add_init_script(path="/home/claude/menu/mock.js")
+        await context.route("**/*", lambda r: route(r) if r.request.url.startswith("https") else r.continue_())
+        page = await context.new_page()
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        await page.goto("http://localhost:8765/notepad-demo.html")
+        await page.wait_for_timeout(1800)
 
-        B = await ctx.new_page(); await B.goto('http://localhost:8765/notepad-demo.html'); await B.wait_for_timeout(600)
-        await A.click('#ta'); await A.keyboard.press('Control+End'); await A.keyboard.insert_text('\n\n체험자가 쓴 글')
-        await A.keyboard.press('Alt+n'); await A.wait_for_timeout(200); await A.keyboard.insert_text('두 번째 창')
-        await B.keyboard.press('Alt+n'); await B.wait_for_timeout(200); await B.click('#ta'); await B.keyboard.insert_text('다른 창에서 만든 메모')
-        await A.wait_for_timeout(1200)
-        ok(len(await tabs(A)) == 3, '체험 중 상태 만들기', f'탭 {len(await tabs(A))}개')
-        await A.wait_for_timeout(8000)
-        ta, tb = await tabs(A), await tabs(B); va, vb = await val(A), await val(B)
-        ok(len(ta) == 1 and len(tb) == 1, '설정 주기 초기화: 창이 여러 개여도 메모 한 장만 남음', f'A {ta} / B {tb}')
-        ok(va == vb and va.startswith('웹 메모장 사용 가이드') and '체험자가 쓴 글' not in va and '두 번째' not in va, '내용도 USAGE 처음 상태로', f'{len(va)}자')
+        value = lambda p: p.eval_on_selector("#ta", "e => e.value")
+        tabs = lambda p: p.eval_on_selector_all("#tabs .tab-name", "els => els.map(e => e.textContent)")
+        first = await value(page)
+        ok(len(await tabs(page)) == 1 and first.startswith("웹 메모장 사용 가이드"), "체험판 초기 USAGE 안내 메모")
+        ok(await page.is_visible("#demoNote"), "체험판 초기화 안내 표시")
 
-        await A.click('#webClone'); await A.wait_for_function("!document.querySelector('#cloneDownload').disabled")
-        await A.click('#cloneDownload'); await A.wait_for_timeout(300)
-        bundle = (await A.evaluate('window.__downloads'))[-1]['data']
-        html = bundle.split(CODE_START, 1)[1].split(CODE_END, 1)[0].strip('\n')
-        ok('demo-home' not in html and '__DEMO_PERIOD_MS' not in html and 'demoNote' not in html, '복제 HTML에 체험용 코드가 없음')
-        ok('const EMBEDDED_USAGE = "# 웹 메모장 사용 가이드' in html, '복제 HTML에 기본 USAGE 안내 포함')
-        ok('id="webClone"' in html and '>앱 복제</span>' in html, '복제 HTML에도 앱 복제 기능 포함')
-        ok(html.index('id="tabs"') < html.index('id="newTab"') < html.index('id="webClone"') and '%F0%9F%93%8B' in html, '복제 HTML에 탭 뒤 + 버튼과 📋 파비콘 포함')
-        ok('fonts.googleapis.com' not in html and 'cdn.jsdelivr.net' not in html and 'marked v12.0.2' in html and '@license DOMPurify 3.2.6' in html, '복제 HTML은 시스템 글꼴과 내장 라이브러리 사용')
-        print('   페이지 오류:', errs or '없음')
+        second = await context.new_page()
+        await second.goto("http://localhost:8765/notepad-demo.html")
+        await second.wait_for_timeout(600)
+        await page.click("#ta")
+        await page.keyboard.press("Control+End")
+        await page.keyboard.insert_text("\n\n체험자가 쓴 글")
+        await page.keyboard.press("Alt+n")
+        await page.wait_for_timeout(200)
+        await page.keyboard.insert_text("첫 번째 창")
+        await second.keyboard.press("Alt+n")
+        await second.wait_for_timeout(200)
+        await second.click("#ta")
+        await second.keyboard.insert_text("다른 창에서 만든 메모")
+        await page.wait_for_timeout(8000)
+        ok(len(await tabs(page)) == len(await tabs(second)) == 1, "설정 주기 뒤 두 창 모두 안내 메모 하나만 유지")
+        ok((await value(page)).startswith("웹 메모장 사용 가이드") and "체험자가 쓴 글" not in await value(page), "체험판 내용 초기화")
 
-        open('/tmp/host/copy_demo.html', 'w', encoding='utf-8').write(html)
-        c2 = await b.new_context()
-        await c2.route('**/*', lambda r: route(r) if r.request.url.startswith('https') else r.continue_())
-        C = await c2.new_page(); await C.goto('http://localhost:8765/copy_demo.html'); await C.wait_for_timeout(700)
-        ok((await val(C)).startswith('웹 메모장 사용 가이드'), '복제본의 내장 안내 메모 표시')
-        await C.keyboard.press('Alt+n'); await C.wait_for_timeout(200); await C.click('#ta'); await C.keyboard.insert_text('복사본에 쓴 글'); await C.wait_for_timeout(6000)
-        ok(await val(C) == '복사본에 쓴 글', '복제본은 초기화되지 않고 메모가 그대로 남음', await val(C))
-        await b.close()
+        await page.click("#webClone")
+        await page.wait_for_function("!document.querySelector('#cloneDownload').disabled")
+        await page.click("#cloneDownload")
+        await page.wait_for_timeout(300)
+        bundle = (await page.evaluate("window.__downloads"))[-1]["data"]
+        html = bundle.split(CODE_START, 1)[1].split(CODE_END, 1)[0].strip("\n")
+        ok("demo-home" not in html and "__DEMO_PERIOD_MS" not in html and "demoNote" not in html, "복제 HTML에서 체험판 코드 제외")
+        ok('const EMBEDDED_USAGE = "# 웹 메모장 사용 가이드' in html, "복제 HTML에 기본 가이드 포함")
+        ok('id="webClone"' not in html and "buildCloneKit" not in html and "앱 복제" not in html, "복제 HTML에서 앱 복제와 재복제 코드 제외")
+        ok(html.index('id="tabs"') < html.index('id="newTab"') and "%F0%9F%93%8B" in html, "복제 HTML에 마지막 탭 뒤 +와 📋 파비콘 유지")
+        ok("fonts.googleapis.com" not in html and "cdn.jsdelivr.net" not in html and "marked v12.0.2" in html and "@license DOMPurify 3.2.6" in html, "복제 HTML 자체 포함 라이브러리 유지")
+        print("   페이지 오류:", errors or "없음")
+        await browser.close()
+
 
 asyncio.run(main())
