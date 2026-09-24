@@ -19,7 +19,7 @@ async def main():
         await A.click('#webClone'); await A.wait_for_function("!document.querySelector('#cloneCopy').disabled")
         dlg = await A.inner_text('#cloneLayer')
         href = await A.get_attribute('#cloneChatGPT', 'href')
-        ok('코드와 제작 요청문을 복사해 ChatGPT에 붙여 넣으면' in dlg, '복제 안내 창에 사용 설명 포함')
+        ok('코드와 제작 요청문을 복사하거나 파일로 다운로드해 ChatGPT에 전달하면' in dlg, '앱 복제 안내 창에 사용 설명 포함')
         ok(href == 'https://chatgpt.com', 'ChatGPT 열기 주소', href)
         await A.click('#cloneClose')
         await A.click('[data-mode=raw]'); await A.wait_for_timeout(200)

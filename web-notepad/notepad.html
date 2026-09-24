@@ -34,6 +34,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="마크다운 서식을 정리하고 브라우저에 안전하게 저장하는 웹 메모장">
 <title>메모장</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%93%8B%3C/text%3E%3C/svg%3E" sizes="any">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=Nanum+Gothic+Coding:wght@400;700&display=swap" rel="stylesheet">
@@ -94,8 +95,9 @@ svg { display: block; }
 
 /* tabs */
 .top { display: flex; align-items: flex-end; gap: 2px; padding: 7px 8px 0; background: var(--desk); min-width: 0; }
-.tabs { position: relative; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; min-width: 0; flex: 1 1 auto; }
-.tabs::-webkit-scrollbar { display: none; }
+.tab-strip { position: relative; display: flex; align-items: flex-end; gap: 2px; min-width: 0; flex: 1 1 auto; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+.tab-strip::-webkit-scrollbar { display: none; }
+.tabs { position: relative; display: flex; gap: 2px; min-width: max-content; flex: 0 0 auto; }
 .tab { position: relative; display: flex; align-items: center; height: 34px; border-radius: 7px 7px 0 0; color: var(--muted); flex: 0 0 auto; }
 .tab:hover { background: rgba(127, 134, 150, .10); }
 .tab.active { background: var(--paper); color: var(--ink); box-shadow: inset 0 2px 0 var(--carbon); }
@@ -296,13 +298,15 @@ svg { display: block; }
 <body>
 <div id="app">
   <header class="top">
-    <div class="tabs" id="tabs" role="tablist" aria-label="메모 목록"></div>
-    <button class="newtab" id="newTab" title="새 메모 (Alt+N)" aria-label="새 메모">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
-    </button>
-    <button class="web-clone" id="webClone" title="실행 가능한 앱 소스와 제작 요청문 가져가기" aria-label="웹 복제">
+    <div class="tab-strip" id="tabStrip">
+      <div class="tabs" id="tabs" role="tablist" aria-label="메모 목록"></div>
+      <button class="newtab" id="newTab" title="새 메모 (Alt+N)" aria-label="새 메모">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
+      </button>
+    </div>
+    <button class="web-clone" id="webClone" title="실행 가능한 앱 소스와 제작 요청문 가져가기" aria-label="앱 복제">
       <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8.5" rx="1.5"/><path d="M10.5 5.5V3.5A1.5 1.5 0 0 0 9 2H4A1.5 1.5 0 0 0 2.5 3.5v6A1.5 1.5 0 0 0 4 11h1.5"/><path d="M9.5 9.75h2.75M10.88 8.38v2.74"/></svg>
-      <span class="label">웹 복제</span>
+      <span class="label">앱 복제</span>
     </button>
   </header>
 
@@ -447,21 +451,21 @@ svg { display: block; }
 <div class="dlg-layer" id="cloneLayer" hidden>
   <div class="dlg clone-dialog" role="dialog" aria-modal="true" aria-labelledby="cloneTitle" aria-describedby="cloneIntro cloneTip">
     <div class="clone-head">
-      <h2 id="cloneTitle">웹 복제</h2>
-      <button class="clone-close" id="cloneClose" aria-label="웹 복제 안내 닫기" title="닫기">
+      <h2 id="cloneTitle">앱 복제</h2>
+      <button class="clone-close" id="cloneClose" aria-label="앱 복제 안내 닫기" title="닫기">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
       </button>
     </div>
-    <p class="clone-intro" id="cloneIntro">이 메모장을 나만의 웹앱으로 만들어 보세요. 코드와 제작 요청문을 복사해 ChatGPT에 붙여 넣으면 시작할 수 있어요. 내가 작성한 메모는 포함되지 않아요.</p>
-    <ol class="clone-steps" aria-label="웹 복제 순서">
-      <li class="clone-step">복사</li><li class="clone-arrow" aria-hidden="true">→</li>
-      <li class="clone-step">ChatGPT에 붙여넣기</li><li class="clone-arrow" aria-hidden="true">→</li>
-      <li class="clone-step">원하는 이름과 스타일 전달</li>
+    <p class="clone-intro" id="cloneIntro">이 메모장을 나만의 앱으로 만들어 보세요. 코드와 제작 요청문을 복사하거나 파일로 다운로드해 ChatGPT에 전달하면 바로 생성을 요청할 수 있어요. 내가 작성한 메모는 포함되지 않아요.</p>
+    <ol class="clone-steps" aria-label="앱 복제 순서">
+      <li class="clone-step">코드와 프롬프트 복사 또는 파일 다운로드</li><li class="clone-arrow" aria-hidden="true">→</li>
+      <li class="clone-step">ChatGPT에 붙여넣기 또는 첨부</li><li class="clone-arrow" aria-hidden="true">→</li>
+      <li class="clone-step">생성 요청</li>
     </ol>
     <p class="clone-tip" id="cloneTip">내용이 길어 복사가 어렵다면 복제 파일을 다운로드한 뒤 ChatGPT 대화에 첨부하세요.</p>
     <p class="clone-status" id="cloneStatus" role="status" aria-live="polite">복제 자료를 준비하고 있어요…</p>
     <div class="clone-actions">
-      <button class="btn primary" id="cloneCopy" disabled>코드 + 프롬프트 복사</button>
+      <button class="btn primary" id="cloneCopy" disabled>코드와 프롬프트 복사</button>
       <button class="btn secondary" id="cloneDownload" disabled>복제 파일 다운로드</button>
       <a class="btn ghost" id="cloneChatGPT" href="https://chatgpt.com" target="_blank" rel="noopener noreferrer">ChatGPT 열기</a>
     </div>
@@ -901,15 +905,11 @@ const USAGE_URL = '/web-notepad/USAGE.md';
 /* __WEB_NOTEPAD_USAGE_START__ */
 const EMBEDDED_USAGE = null;
 /* __WEB_NOTEPAD_USAGE_END__ */
-const CLONE_PROMPT = `첨부한 코드를 바탕으로 나만의 웹 메모장을 만들어 줘. 기존 디자인과 기능은 최대한 유지하고, 먼저 앱 이름·사용자 표시 이름·대표 색상을 한 번에 질문해 줘. 내가 기본값으로 진행해 달라고 하면 추가 질문 없이 만들어 줘.
+const CLONE_PROMPT = `첨부된 소스를 바탕으로 추가 질문 없이 즉시 실행 가능한 웹 메모장 전체 파일을 만들어 줘. 앱 이름, 사용자 표시 이름, 대표 색상은 묻지 말고 원본 설정을 유지해 줘.
 
-개별화할 설정과 원제작자 출처 표시는 구분하고, 기존 라이선스와 출처는 유지해 줘. 원본 운영자의 배포 주소와 프로젝트 설정은 내 앱에 맞게 안내해 줘.
+원본의 디자인과 기능, 마지막 메모 탭 바로 뒤의 새 메모 버튼, 📋 파비콘, 앱 복제 기능, 브라우저 저장 방식, 첫 사용 가이드, 라이선스와 출처 표시를 유지해 줘.
 
-메모는 사용자의 브라우저에 저장하고, 새 사용자를 위한 사용 가이드와 웹 복제 기능도 유지해 줘. 설명이나 일부 코드만 주지 말고 실제 실행 가능한 전체 파일을 제공해 줘.
-
-파일 생성 후 로컬에서 여는 방법과 내 계정으로 Vercel에 배포하는 방법을 초보자도 따라 할 수 있게 설명해 줘. 직접 실행하거나 배포하지 못한 단계는 완료했다고 말하지 말아 줘.
-
-아래 “실행 가능한 전체 HTML”은 예시나 화면 복사본이 아니라 현재 앱의 정적 소스야. 한 파일로 저장해 실행할 수 있도록 사용하고, 그 안의 외부 글꼴·라이브러리 참조, 기본 사용 가이드, 웹 복제 기능을 빠뜨리지 말아 줘. 브라우저 저장 데이터나 개인 메모는 첨부되지 않았어.`;
+계획이나 일부 코드만 제시하지 말고 전체 실행 파일을 제공해 줘. 결과물과 함께 로컬 실행 방법과 사용자의 계정으로 Vercel에 배포하는 방법을 안내해 줘. 직접 실행하거나 배포하지 못한 작업은 완료했다고 말하지 말아 줘.`;
 const CLONE_PROMPT_START = '=====' + ' 제작 요청 프롬프트 시작 ' + '=====';
 const CLONE_PROMPT_END = '=====' + ' 제작 요청 프롬프트 끝 ' + '=====';
 const CLONE_CODE_START = '=====' + ' 실행 가능한 전체 HTML 시작 ' + '=====';
@@ -921,7 +921,7 @@ const esc = (s) => s.replace(/[&<>]/g, c => c === '&' ? '&amp;' : c === '<' ? '&
 
 const ta = $('ta'), backdrop = $('backdrop'), stage = $('stage'), editorWrap = $('editorWrap');
 const rendered = $('rendered'), md = $('md');
-const tabsEl = $('tabs');
+const tabsEl = $('tabs'), tabStrip = $('tabStrip');
 
 /* ============================================================
    Settings (per device)
@@ -1508,9 +1508,12 @@ function renderTabs() {
   tabsEl.replaceChildren(frag);
   const act = tabsEl.querySelector('.tab.active');
   if (act) {
-    const l = act.offsetLeft, r = l + act.offsetWidth;
-    if (l < tabsEl.scrollLeft) tabsEl.scrollLeft = Math.max(0, l - 8);
-    else if (r > tabsEl.scrollLeft + tabsEl.clientWidth) tabsEl.scrollLeft = r - tabsEl.clientWidth + 8;
+    const l = tabsEl.offsetLeft + act.offsetLeft;
+    const activeRight = l + act.offsetWidth;
+    const lastTab = act === tabsEl.lastElementChild;
+    const r = lastTab && !readOnly ? $('newTab').offsetLeft + $('newTab').offsetWidth : activeRight;
+    if (l < tabStrip.scrollLeft) tabStrip.scrollLeft = Math.max(0, l - 8);
+    else if (r > tabStrip.scrollLeft + tabStrip.clientWidth) tabStrip.scrollLeft = r - tabStrip.clientWidth + 8;
   }
 }
 function openNote(id) {

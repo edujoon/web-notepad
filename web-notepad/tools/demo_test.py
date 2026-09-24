@@ -48,7 +48,8 @@ async def main():
         html = bundle.split(CODE_START, 1)[1].split(CODE_END, 1)[0].strip('\n')
         ok('demo-home' not in html and '__DEMO_PERIOD_MS' not in html and 'demoNote' not in html, '복제 HTML에 체험용 코드가 없음')
         ok('const EMBEDDED_USAGE = "# 웹 메모장 사용 가이드' in html, '복제 HTML에 기본 USAGE 안내 포함')
-        ok('id="webClone"' in html, '복제 HTML에도 웹 복제 기능 포함')
+        ok('id="webClone"' in html and '>앱 복제</span>' in html, '복제 HTML에도 앱 복제 기능 포함')
+        ok(html.index('id="tabs"') < html.index('id="newTab"') < html.index('id="webClone"') and '%F0%9F%93%8B' in html, '복제 HTML에 탭 뒤 + 버튼과 📋 파비콘 포함')
         print('   페이지 오류:', errs or '없음')
 
         open('/tmp/host/copy_demo.html', 'w', encoding='utf-8').write(html)
